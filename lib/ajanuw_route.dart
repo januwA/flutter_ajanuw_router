@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_ajanuw_router/path.dart';
 
 import 'ajanuw_route_settings.dart';
 import 'ajanuw_router.dart';
+
+typedef AjanuwRouteBuilder = Widget Function(
+    BuildContext conetxt, AjanuwRouteSettings settings);
 
 class AjanuwRoute {
   /// '**'
   static const notFoundRouteName = '**';
 
-  final String parent = '/';
   final bool fullscreenDialog;
+
+  ///   Whether the route should remain in memory when it is inactive.
+  /// 
+  /// If this is true, then the route is maintained, so that any futures it is holding from the next route will properly resolve when the next route pops. If this is not necessary, this can be set to false to allow the framework to entirely discard the route's widget hierarchy when it is not visible.
+  /// 
+  /// The value of this getter should not change during the lifetime of the object. It is used by [createOverlayEntries], which is called by [install] near the beginning of the route lifecycle.
+  /// 
+  /// Copied from ModalRoute.
   final bool maintainState;
 
   /// Flutetr web document.title
@@ -17,15 +28,20 @@ class AjanuwRoute {
   final Color color;
 
   /// 与之匹配的路径，即使用路由器匹配表示法的URL字符串。
+  ///
   /// 默认为"/"（根路径）
   ///
-  /// path='home' 相对路径
+  /// 不要再path前面添加'/'，如：
+  ///
+  /// ```dart
+  /// path = '/home' // error
+  /// path = 'home   // success
+  /// ```
   final String path;
 
   /// 路径匹配时实例化的组件。
   /// 如果子路由指定组件，则可以为空。
-  final Widget Function(BuildContext conetxt, AjanuwRouteSettings settings)
-      builder;
+  final AjanuwRouteBuilder builder;
 
   /// 为导航设置动画
   ///
@@ -75,8 +91,12 @@ class AjanuwRoute {
   /// 一组指定嵌套路由的子Route对象的数组配置
   final List<AjanuwRoute> children;
 
-  bool get isAbsolute => path.startsWith('/');
-  bool get isRelative => !path.startsWith('/');
+  bool get isAbsolute => p.isAbsolute(path);
+  bool get isRelative => p.isRelative(path);
+
+  ///```dart
+  /// path = ''
+  /// ```
   bool get isEmpty => path.isEmpty;
   bool get isAnimatedRoute => transitionsBuilder != null;
 
@@ -84,12 +104,13 @@ class AjanuwRoute {
   bool get isNotFoundRoute => path == notFoundRouteName;
   bool get isRedirect => redirectTo != null;
 
+  /// 配置
   AjanuwRoute({
-    String path,
+    @required this.path,
     this.transitionDuration,
     this.transitionsBuilder,
     this.fullscreenDialog = false,
-    this.maintainState,
+    this.maintainState = true,
     this.title,
     this.color,
     this.builder,
@@ -97,9 +118,54 @@ class AjanuwRoute {
     this.canActivate,
     this.canActivateChild,
     this.children,
-  })  : path = path.trim(),
+  })  :
+        // path 为必须参数
         assert(path != null),
+
+        // path不能设置以'/'开始
+        assert(!path.trim().startsWith('/')),
+
+        // 必须要有能渲染的对象
+        assert(builder != null ||
+            builder == null && children != null ||
+            redirectTo != null),
+
+        // 强制使用'**'搭配'redirectTo'
         assert((() {
-          return builder != null || builder == null && children != null || redirectTo != null;
+          if (path == notFoundRouteName) {
+            return redirectTo != null;
+          }
+          return true;
         })());
+
+  AjanuwRoute copyWith({
+    String path,
+    String parent,
+    Duration transitionDuration,
+    RouteTransitionsBuilder transitionsBuilder,
+    bool fullscreenDialog,
+    bool maintainState,
+    String title,
+    Color color,
+    AjanuwRouteBuilder builder,
+    String redirectTo,
+    List<CanActivate> canActivate,
+    List<CanActivateChild> canActivateChild,
+    List<AjanuwRoute> children,
+  }) {
+    return AjanuwRoute(
+      path: path ?? this.path,
+      transitionDuration: transitionDuration ?? this.transitionDuration,
+      transitionsBuilder: transitionsBuilder ?? this.transitionsBuilder,
+      fullscreenDialog: fullscreenDialog ?? this.fullscreenDialog,
+      maintainState: maintainState ?? this.maintainState,
+      title: title ?? this.title,
+      color: color ?? this.color,
+      builder: builder ?? this.builder,
+      redirectTo: redirectTo ?? this.redirectTo,
+      canActivate: canActivate ?? this.canActivate,
+      canActivateChild: canActivateChild ?? this.canActivateChild,
+      children: children ?? this.children,
+    );
+  }
 }

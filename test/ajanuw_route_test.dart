@@ -11,26 +11,36 @@ class Home extends StatelessWidget {
 
 void main() {
   AjanuwRoute route;
+  AjanuwRoute notFoundRoute;
   Widget home;
 
   setUpAll(() {
     home = Home();
     route = AjanuwRoute(
-      path: '  /home',
+      path: 'home',
       builder: (context, settings) => home,
+    );
+
+    notFoundRoute = AjanuwRoute(
+      path: '**',
+      redirectTo: '/not-found',
+      // builder: (context, settings) => home,
     );
   });
 
   group('AjanuwRoute test.', () {
     test('path.', () {
-      expect(route.isAbsolute, true);
-      expect(route.path, '/home');
+      expect(route.isRelative, true);
+      expect(route.path, 'home');
     });
     test('builder.', () {
       expect(
           route.builder != null ||
               route.builder == null && route.children != null,
           true);
+    });
+    test('not found.', () {
+      expect(notFoundRoute.isNotFoundRoute, true);
     });
   });
 }

@@ -1,6 +1,6 @@
 name: flutter_ajanuw_router
 description: A router used on Flutter and Flutter WEB.
-version: 0.0.1
+version: 0.0.2
 author:
 homepage:
 
@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  path: ^1.6.4
 
 dev_dependencies:
   flutter_test:

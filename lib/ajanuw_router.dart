@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_ajanuw_router/path.dart';
 
 import 'ajanuw_route.dart';
 import 'ajanuw_route_settings.dart';
@@ -11,17 +12,13 @@ typedef CanActivateChild = bool Function(AjanuwRouting routing);
 
 class AjanuwRouter {
   AjanuwRouter({
-    this.maintainState = true,
+    this.baseHref = '/',
   });
 
-  /// Whether the route should remain in memory when it is inactive.
+  final String baseHref;
 
-  /// If this is true, then the route is maintained, so that any futures it is holding from the next route will properly resolve when the next route pops. If this is not necessary, this can be set to false to allow the framework to entirely discard the route's widget hierarchy when it is not visible.
-
-  /// The value of this getter should not change during the lifetime of the object. It is used by [createOverlayEntries], which is called by [install] near the beginning of the route lifecycle.
-
-  /// Copied from ModalRoute.
-  final bool maintainState;
+  /// TODO: 所有路由将被打平放在这里面
+  final Map<String, AjanuwRouting> routers = {};
 
   /// 动态路由
   ///
@@ -66,8 +63,8 @@ class AjanuwRouter {
 
   /// 访问该路由，是否有权限
   static bool _hasCanActivate(AjanuwRouting routing) {
-    if (routing?.canActivate?.isNotEmpty ?? false) {
-      for (CanActivate t in routing?.canActivate) {
+    if (routing.route?.canActivate?.isNotEmpty ?? false) {
+      for (CanActivate t in routing.route?.canActivate) {
         if (t(routing) == false) {
           // 返回null会造成错误，但是能停止跳转
           return false;
@@ -166,54 +163,42 @@ class AjanuwRouter {
   }
 
   /// 初始化应用程序的导航
-  AjanuwRouteFactory forRoot(List<AjanuwRoute> routes,
-      [String parentPath = '']) {
-    for (var i = 0; i < routes.length; i++) {
-      final AjanuwRoute r = routes[i];
+  AjanuwRouteFactory forRoot(List<AjanuwRoute> configRoutes,
+      [String parentPath = '/']) {
+    for (var i = 0; i < configRoutes.length; i++) {
+      final AjanuwRoute route = configRoutes[i];
 
       // 匹配 404
-      if (r.isNotFoundRoute) {
-        if (r.isRedirect) {
-          var builder =
-              r.isRedirect ? _routers[r.redirectTo].builder : r.builder;
-          notFound(
-            AjanuwRouting(
-              redirectTo: r.redirectTo,
-              builder: builder,
-            ),
-          );
-        }
+      if (route.isNotFoundRoute) {
+        notFound(AjanuwRouting(route: route));
         continue;
       }
 
       // 重定向路由
-      if (r.isRedirect) {
+      if (route.isRedirect) {
         redirectTo(
-          path: r.path,
-          routing: AjanuwRouting(
-            redirectTo: r.redirectTo,
-            canActivate: r.canActivate,
-          ),
+          path: p.join(parentPath, route.path),
+          routing: AjanuwRouting(route: route),
         );
         continue;
       }
 
       // 包含了子路由
-      if (r.children != null) {
-        for (AjanuwRoute cr in r.children) {
-          var builder = (AjanuwRouteSettings settings) =>
-              _createBuilder(route: cr, settings: settings);
-
-          String parent = parentPath + r.path;
-          String path = parent + cr.path;
+      if (route.children != null) {
+        for (AjanuwRoute cr in route.children) {
+          String parent = p.join(parentPath, route.path);
+          String path = p.join(parent, cr.path);
           define(
             path: path,
             routing: AjanuwRouting(
+              // 权限的继承，当父路由被添加了访问权限时,
+              // 子路由也会被绑定
+              route: cr.canActivate == null
+                  ? cr.copyWith(
+                      canActivate: route.canActivate,
+                    )
+                  : cr,
               parent: parent,
-              // 权限的继承，当父路由被添加了访问权限，子路由也会被绑定
-              canActivate: cr.canActivate ?? r.canActivate,
-              builder: builder,
-              redirectTo: cr.redirectTo,
             ),
           );
           if (cr.children != null) {
@@ -221,59 +206,18 @@ class AjanuwRouter {
           }
         }
       }
-
+      // TODO: 这种情况怎么办
+      // AjanuwRoute( path: '', builder: (c, s) => home,),
+      //
       // 普通路由
-      if (r.builder != null) {
-        var builder = (AjanuwRouteSettings settings) =>
-            _createBuilder(route: r, settings: settings);
-
+      if (route.builder != null) {
         define(
-          path: parentPath + r.path,
-          routing: AjanuwRouting(
-            canActivate: r.canActivate,
-            builder: builder,
-            redirectTo: r.redirectTo,
-          ),
+          path: p.join(parentPath, route.path),
+          routing: AjanuwRouting(route: route),
         );
       }
     }
     return onGenerateRoute;
-  }
-
-  Route<T> _createBuilder<T>({
-    AjanuwRoute route,
-    AjanuwRouteSettings settings,
-  }) {
-    if (route.transitionsBuilder != null) {
-      return PageRouteBuilder(
-        settings: settings,
-        transitionDuration: route?.transitionDuration ?? kTabScrollDuration,
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            route.title != null || route.color != null
-                ? Title(
-                    title: route?.title,
-                    color: route?.color ?? Theme.of(context).primaryColor,
-                    child: route.builder(context, settings),
-                  )
-                : route.builder(context, settings),
-        transitionsBuilder: route.transitionsBuilder,
-      );
-    } else {
-      return MaterialPageRoute(
-        fullscreenDialog: route.fullscreenDialog,
-        maintainState: route?.maintainState ?? maintainState,
-        // maintainState: false,
-        builder: (context) => route.title != null || route.color != null
-            ? Title(
-                title: route?.title,
-                color: route?.color ?? Theme.of(context).primaryColor,
-                child: route.builder(context, settings),
-              )
-            : route.builder(context, settings),
-        // builder: (context) => route.builder(context, settings),
-        settings: settings,
-      );
-    }
   }
 
   /// [navigtor.pop()]并不会触发[onGenerateRoute]
@@ -304,7 +248,7 @@ class AjanuwRouter {
     for (var item in _redirectTorouters.entries) {
       if (settings.name == item.key) {
         var r = item.value.copyWith(settings: settings);
-        String redirectToName = _redirectTorouters[item.key].redirectTo;
+        String redirectToName = _redirectTorouters[item.key].route.redirectTo;
         return _hasCanActivate(r)
             ? _routers[redirectToName].builder(r.settings)
             : null;
@@ -312,8 +256,10 @@ class AjanuwRouter {
     }
 
     // 当所有路由不匹配时，返回404
-    return _notFound.builder(settings.copyWith(
-      name: _notFound.redirectTo,
-    ));
+    return _routers[_notFound.route.redirectTo].builder(
+      settings.copyWith(
+        name: _notFound.route.redirectTo,
+      ),
+    );
   };
 }

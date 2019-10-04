@@ -1,15 +1,21 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_ajanuw_router/ajanuw_route.dart';
+
 import 'ajanuw_route_settings.dart';
 import 'ajanuw_router.dart';
 
 class AjanuwRouting {
+  final AjanuwRoute route;
   final List<DynamicRoutingParam> params;
   final RegExp exp;
-  final AjanuwRouteFactory builder;
+  AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) =>
+      _createPageRouteBuilder(settings: settings);
 
   /// 无论什么路由，可能又会加上访问权限
-  final List<CanActivate> canActivate;
-  final List<CanActivateChild> canActivateChild;
-  final String redirectTo;
+  // final List<CanActivate> canActivate;
+  // final List<CanActivateChild> canActivateChild;
+  // final String redirectTo;
   final AjanuwRouteSettings settings;
 
   /// 只有包含在[children]里面的路由，才设置parent
@@ -17,17 +23,15 @@ class AjanuwRouting {
   String get url => settings?.name;
 
   AjanuwRouting({
+    @required this.route,
     this.params,
     this.parent,
     this.exp,
-    this.builder,
-    this.canActivate,
-    this.canActivateChild,
-    this.redirectTo,
     this.settings,
   });
 
   AjanuwRouting copyWith({
+    AjanuwRoute route,
     List<DynamicRoutingParam> params,
     RegExp exp,
     AjanuwRouteFactory builder,
@@ -38,15 +42,50 @@ class AjanuwRouting {
     String parent,
   }) {
     return AjanuwRouting(
+      route: route ?? this.route,
       params: params ?? this.params,
       exp: exp ?? this.exp,
-      builder: builder ?? this.builder,
-      canActivate: canActivate ?? this.canActivate,
-      redirectTo: redirectTo ?? this.redirectTo,
       settings: settings ?? this.settings,
-      canActivateChild: canActivateChild ?? this.canActivateChild,
       parent: parent ?? this.parent,
     );
+  }
+
+  /// 将[AjanuwRoute]的配置生成对应的[PageRoute]
+  Route<T> _createPageRouteBuilder<T>({
+    AjanuwRouteSettings settings,
+  }) {
+    // 重定向路由和404路由，没有直接的渲染对象
+    if (route.isNotFoundRoute || route.isRedirect) return null;
+    if (route.transitionsBuilder != null) {
+      return PageRouteBuilder(
+        settings: settings,
+        transitionDuration: route?.transitionDuration ?? kTabScrollDuration,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            route.title != null || route.color != null
+                ? Title(
+                    title: route?.title,
+                    color: route?.color ?? Theme.of(context).primaryColor,
+                    child: route.builder(context, settings),
+                  )
+                : route.builder(context, settings),
+        transitionsBuilder: route.transitionsBuilder,
+      );
+    } else {
+      return MaterialPageRoute(
+        fullscreenDialog: route.fullscreenDialog,
+        maintainState: route?.maintainState,
+        // maintainState: false,
+        builder: (context) => route.title != null || route.color != null
+            ? Title(
+                title: route?.title,
+                color: route?.color ?? Theme.of(context).primaryColor,
+                child: route.builder(context, settings),
+              )
+            : route.builder(context, settings),
+        // builder: (context) => route.builder(context, settings),
+        settings: settings,
+      );
+    }
   }
 }
 

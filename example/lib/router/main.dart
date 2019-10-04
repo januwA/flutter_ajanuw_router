@@ -18,16 +18,16 @@ final AjanuwRouter router = AjanuwRouter(
 
 List<AjanuwRoute> routes = [
   AjanuwRoute(
-    path: '/',
+    path: '',
     redirectTo: '/home',
   ),
   AjanuwRoute(
-    path: '/home',
+    path: 'home',
     title: 'home',
     builder: (context, settings) => Home(),
   ),
   AjanuwRoute(
-    path: '/login',
+    path: 'login',
     title: '登陆',
     builder: (context, settings) => Title(
       title: '登陆',
@@ -52,7 +52,7 @@ List<AjanuwRoute> routes = [
     },
   ),
   AjanuwRoute(
-    path: '/admin',
+    path: 'admin',
     title: '控制台',
     builder: (context, settings) => Admin(),
     canActivate: [
@@ -68,19 +68,19 @@ List<AjanuwRoute> routes = [
     children: [
       AjanuwRoute(
         title: '添加用户',
-        path: '/add-user',
+        path: 'add-user',
         builder: (context, settings) => AddUser(),
       ),
     ],
   ),
   AjanuwRoute(
     title: '用户组',
-    path: '/users',
+    path: 'users',
     builder: (context, settings) => Users(),
     children: [
       AjanuwRoute(
         title: '用户详情',
-        path: '/:id',
+        path: ':id',
         canActivate: [
           (AjanuwRouting routing) {
             // 没有id拒绝访问
@@ -107,7 +107,7 @@ List<AjanuwRoute> routes = [
         children: [
           AjanuwRoute(
             title: '设置',
-            path: '/user-settings',
+            path: 'user-settings',
             builder: (context, settings) => UserSettings(),
           ),
         ],
@@ -116,7 +116,7 @@ List<AjanuwRoute> routes = [
   ),
   AjanuwRoute(
     title: '页面未找到',
-    path: '/not-found',
+    path: 'not-found',
     builder: (context, settings) => NotFound(),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       var begin = 0.0;
