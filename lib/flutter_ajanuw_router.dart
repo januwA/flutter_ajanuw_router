@@ -172,9 +172,7 @@ class AjanuwRouter {
       var paramMap = _snapshot(ajanuwRouteSettings.name, routing);
 
       var r = routing.copyWith(
-        settings: ajanuwRouteSettings.copyWith(
-          paramMap: paramMap,
-        ),
+        settings: ajanuwRouteSettings.copyWith(paramMap: paramMap),
       );
       return _hasCanActivate(r) ? r.builder(ajanuwRouteSettings) : null;
     }

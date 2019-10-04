@@ -14,10 +14,6 @@ class AjanuwRouting {
   AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) =>
       _createPageRouteBuilder(settings: settings);
 
-  /// 无论什么路由，可能又会加上访问权限
-  // final List<CanActivate> canActivate;
-  // final List<CanActivateChild> canActivateChild;
-  // final String redirectTo;
   final AjanuwRouteSettings settings;
 
   /// 只有包含在[children]里面的路由，才设置parent
