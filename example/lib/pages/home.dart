@@ -42,6 +42,12 @@ class _HomeState extends State<Home> {
               },
             ),
             RaisedButton(
+              child: Text('redirect to dynamic path'),
+              onPressed: () {
+                router.navigator.pushNamed('/aa');
+              },
+            ),
+            RaisedButton(
               child: Text('Other'),
               onPressed: () {
                 router.navigator.pushNamed('/aaa');

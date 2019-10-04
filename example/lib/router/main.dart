@@ -9,17 +9,18 @@ import 'package:example/pages/users.dart';
 import 'package:example/service/auth.service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ajanuw_router/ajanuw_route.dart';
-import 'package:flutter_ajanuw_router/ajanuw_router.dart';
 import 'package:flutter_ajanuw_router/ajanuw_routing.dart';
+import 'package:flutter_ajanuw_router/flutter_ajanuw_router.dart';
 
-final AjanuwRouter router = AjanuwRouter(
-    // maintainState: false,
-    );
-
+var router = AjanuwRouter();
 List<AjanuwRoute> routes = [
   AjanuwRoute(
     path: '',
     redirectTo: '/home',
+  ),
+  AjanuwRoute(
+    path: 'aa',
+    redirectTo: '/users/2',
   ),
   AjanuwRoute(
     path: 'home',
@@ -59,6 +60,7 @@ List<AjanuwRoute> routes = [
       (AjanuwRouting routing) {
         bool isLogin = authService.islogin;
         if (isLogin) return true;
+        print(routing.url);
         authService.redirectTo = routing.url;
         print('未登录，重定向登陆页面!!');
         router.navigator.pushNamed('/login');

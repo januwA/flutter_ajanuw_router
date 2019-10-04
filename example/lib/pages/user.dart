@@ -33,7 +33,14 @@ class _UserState extends State<User> {
               onPressed: () {
                 router.navigator.pushNamed('/users/${widget.id}/user-settings');
               },
-            )
+            ),
+            if (widget.id == 3)
+              RaisedButton(
+                child: Text('to user 1'),
+                onPressed: () {
+                  router.navigator.pushNamed('/users/1');
+                },
+              ),
           ],
         ),
       ),

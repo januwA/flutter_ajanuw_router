@@ -1,24 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_ajanuw_router/path.dart';
-
 import 'ajanuw_route_settings.dart';
-import 'ajanuw_router.dart';
+import 'flutter_ajanuw_router.dart';
 
 typedef AjanuwRouteBuilder = Widget Function(
     BuildContext conetxt, AjanuwRouteSettings settings);
 
+enum AjanuwRouteType {
+  /// { path="xxx", redirectTo='/home' }
+  redirect,
+
+  /// { path='users/:id' }
+  dynamic,
+
+  /// { path='home' }
+  normal,
+}
+
 class AjanuwRoute {
-  /// '**'
+  /// 默认'**'
   static const notFoundRouteName = '**';
 
+  /// Whether this page route is a full-screen dialog.
+  ///
+  /// In Material and Cupertino, being fullscreen has the effects of making
+  /// the app bars have a close button instead of a back button. On
+  /// iOS, dialogs transitions animate differently and are also not closeable
+  /// with the back swipe gesture.
   final bool fullscreenDialog;
 
   ///   Whether the route should remain in memory when it is inactive.
-  /// 
+  ///
   /// If this is true, then the route is maintained, so that any futures it is holding from the next route will properly resolve when the next route pops. If this is not necessary, this can be set to false to allow the framework to entirely discard the route's widget hierarchy when it is not visible.
-  /// 
+  ///
   /// The value of this getter should not change during the lifetime of the object. It is used by [createOverlayEntries], which is called by [install] near the beginning of the route lifecycle.
-  /// 
+  ///
   /// Copied from ModalRoute.
   final bool maintainState;
 
@@ -91,18 +106,36 @@ class AjanuwRoute {
   /// 一组指定嵌套路由的子Route对象的数组配置
   final List<AjanuwRoute> children;
 
-  bool get isAbsolute => p.isAbsolute(path);
-  bool get isRelative => p.isRelative(path);
-
-  ///```dart
-  /// path = ''
-  /// ```
-  bool get isEmpty => path.isEmpty;
+  ///是否为自定义动画路由
   bool get isAnimatedRoute => transitionsBuilder != null;
 
-  /// path = '**' 设置路由为404路由
-  bool get isNotFoundRoute => path == notFoundRouteName;
-  bool get isRedirect => redirectTo != null;
+  /// 关于[route]的类型
+  ///
+  /// 2. redirectTo != null 被断定为[AjanuwRouteType.redirect]
+  ///
+  /// 3. path=users/:id 动态路由[AjanuwRouteType.dynamic]
+  ///
+  /// 4. page=home 普通路由[AjanuwRouteType.normal]
+  AjanuwRouteType get type {
+    if (redirectTo != null) return AjanuwRouteType.redirect;
+
+    /// 在这里并不能检测出嵌套的动态路由，如：
+    /// [user -> :id -> settings] 在处理到settings时，被判断为了[AjanuwRouteType.normal]
+    /// 只能检测到'user/:id/settings'这种一次写完的path
+    /// 无法判断交给[AjanuwRouting]处理，在那里[path]将被打平为[url]
+    if (isDynamicRouting(path)) return AjanuwRouteType.dynamic;
+
+    return AjanuwRouteType.normal;
+  }
+
+  /// 检查是否为动态路由
+  static bool isDynamicRouting(String path) {
+    List<String> routeNameSplit = path.split('/');
+    for (String item in routeNameSplit) {
+      if (item.startsWith(':')) return true;
+    }
+    return false;
+  }
 
   /// 配置
   AjanuwRoute({

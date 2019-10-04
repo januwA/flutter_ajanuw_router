@@ -8,7 +8,7 @@ class AuthService {
   }
 
   String redirectTo = '/';
-  bool islogin = true;
+  bool islogin = false;
   final _isLogin$ = StreamController<bool>();
   Stream<bool> get islogin$ => _isLogin$.stream.asBroadcastStream();
 

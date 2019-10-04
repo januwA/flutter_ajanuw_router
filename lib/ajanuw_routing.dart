@@ -1,14 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ajanuw_router/ajanuw_route.dart';
+import 'package:flutter_ajanuw_router/path.dart';
 
 import 'ajanuw_route_settings.dart';
-import 'ajanuw_router.dart';
+import 'flutter_ajanuw_router.dart';
 
 class AjanuwRouting {
+  final String path;
+  String get url => p.join(AjanuwRouter.baseHref, path);
   final AjanuwRoute route;
-  final List<DynamicRoutingParam> params;
-  final RegExp exp;
+
   AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) =>
       _createPageRouteBuilder(settings: settings);
 
@@ -20,17 +22,60 @@ class AjanuwRouting {
 
   /// 只有包含在[children]里面的路由，才设置parent
   final String parent;
-  String get url => settings?.name;
+
+  /// 使用'/'分隔[route.path]
+  List<String> get pathSplit => route.path.split('/');
+
+  /// 在被判断为动态路由时，将会填充这个对象
+  /// 解析出动态参数，和动态参数的位置
+  List<DynamicRoutingParam> get params {
+    if (type != AjanuwRouteType.dynamic) return null;
+    List<DynamicRoutingParam> params = [];
+    for (var i = 0; i < pathSplit.length; i++) {
+      String item = pathSplit[i];
+      if (item.startsWith(':')) {
+        String name = item;
+        int index = i;
+        params.add(DynamicRoutingParam(name, index));
+      }
+    }
+    return params;
+  }
+
+  /// 在被判断为动态路由时，将会填充这个对象
+  /// 在访问动态路由时，将用[exp]解析url是否与路由匹配
+  RegExp get exp {
+    if (type != AjanuwRouteType.dynamic) return null;
+    String exp = '';
+    for (var i = 0; i < pathSplit.length; i++) {
+      String item = pathSplit[i];
+      String expItem = '\/' + item;
+      if (item.startsWith(':')) {
+        expItem = '/([^/]+)';
+      }
+      exp += expItem;
+    }
+    RegExp parseExp = RegExp("${exp.replaceFirst('/', '')}", dotAll: true);
+    return parseExp;
+  }
+
+  AjanuwRouteType get type {
+    if (route.type == AjanuwRouteType.redirect) return AjanuwRouteType.redirect;
+    if (AjanuwRoute.isDynamicRouting(path)) return AjanuwRouteType.dynamic;
+
+    return AjanuwRouteType.normal;
+  }
 
   AjanuwRouting({
+    @required this.path,
     @required this.route,
-    this.params,
-    this.parent,
-    this.exp,
     this.settings,
+    this.parent,
   });
 
   AjanuwRouting copyWith({
+    String url,
+    String path,
     AjanuwRoute route,
     List<DynamicRoutingParam> params,
     RegExp exp,
@@ -42,47 +87,48 @@ class AjanuwRouting {
     String parent,
   }) {
     return AjanuwRouting(
+      path: path ?? this.path,
       route: route ?? this.route,
-      params: params ?? this.params,
-      exp: exp ?? this.exp,
       settings: settings ?? this.settings,
       parent: parent ?? this.parent,
     );
+  }
+
+  /// 在操作系统中描述此应用的小部件。
+  Widget _createTitle(BuildContext context, AjanuwRoute route) {
+    return Title(
+      title: route?.title,
+      color: route?.color ?? Theme.of(context).primaryColor,
+      child: route.builder(context, settings),
+    );
+  }
+
+  Widget _createBuilder(BuildContext context, AjanuwRoute route) {
+    return route.title != null || route.color != null
+        ? _createTitle(context, route)
+        : route.builder(context, settings);
   }
 
   /// 将[AjanuwRoute]的配置生成对应的[PageRoute]
   Route<T> _createPageRouteBuilder<T>({
     AjanuwRouteSettings settings,
   }) {
-    // 重定向路由和404路由，没有直接的渲染对象
-    if (route.isNotFoundRoute || route.isRedirect) return null;
-    if (route.transitionsBuilder != null) {
+    // 重定向路由，没有直接的渲染对象
+    if (route.type == AjanuwRouteType.redirect) return null;
+
+    if (route.isAnimatedRoute) {
       return PageRouteBuilder(
         settings: settings,
         transitionDuration: route?.transitionDuration ?? kTabScrollDuration,
         pageBuilder: (context, animation, secondaryAnimation) =>
-            route.title != null || route.color != null
-                ? Title(
-                    title: route?.title,
-                    color: route?.color ?? Theme.of(context).primaryColor,
-                    child: route.builder(context, settings),
-                  )
-                : route.builder(context, settings),
+            _createBuilder(context, route),
         transitionsBuilder: route.transitionsBuilder,
       );
     } else {
       return MaterialPageRoute(
         fullscreenDialog: route.fullscreenDialog,
         maintainState: route?.maintainState,
-        // maintainState: false,
-        builder: (context) => route.title != null || route.color != null
-            ? Title(
-                title: route?.title,
-                color: route?.color ?? Theme.of(context).primaryColor,
-                child: route.builder(context, settings),
-              )
-            : route.builder(context, settings),
-        // builder: (context) => route.builder(context, settings),
+        builder: (context) => _createBuilder(context, route),
         settings: settings,
       );
     }
