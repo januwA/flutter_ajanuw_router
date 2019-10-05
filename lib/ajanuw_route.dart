@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'ajanuw_route_settings.dart';
 import 'flutter_ajanuw_router.dart';
@@ -38,6 +40,10 @@ class AjanuwRoute {
   final bool maintainState;
 
   /// Flutetr web document.title
+  /// 
+  /// 可能会出现异常行为，尝试将[maintainState]设置为'false'
+  /// 
+  /// 请仔细看[maintainState]属性的说明
   final String title;
 
   final Color color;
@@ -140,7 +146,7 @@ class AjanuwRoute {
   /// 配置
   AjanuwRoute({
     @required this.path,
-    this.transitionDuration,
+    this.transitionDuration = kTabScrollDuration,
     this.transitionsBuilder,
     this.fullscreenDialog = false,
     this.maintainState = true,
@@ -200,5 +206,21 @@ class AjanuwRoute {
       canActivateChild: canActivateChild ?? this.canActivateChild,
       children: children ?? this.children,
     );
+  }
+
+  @override
+  String toString() {
+    return jsonEncode({
+      'notFoundRouteName': notFoundRouteName,
+      'fullscreenDialog': fullscreenDialog,
+      'maintainState': maintainState,
+      'title': title,
+      'color': color,
+      'path': path,
+      'transitionDuration': transitionDuration,
+      'redirectTo': redirectTo,
+      'isAnimatedRoute': isAnimatedRoute,
+      // 'type': type.toString(),
+    });
   }
 }

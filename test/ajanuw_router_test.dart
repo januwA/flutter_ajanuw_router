@@ -53,7 +53,7 @@ void main() {
         path: '**',
         redirectTo: '/not-found',
       ),
-    ]);
+    ], baseHref: '/www');
     home = Home();
   });
 
@@ -75,7 +75,7 @@ void main() {
       print('-' * 10);
     }
     expect(AjanuwRouter.routers.keys.length != 0, true);
-  }, skip: true);
+  }, skip: false);
 
   test('test exp match of dynamic route', () {
     expect(AjanuwRouter.routers['users/:id'].exp.hasMatch('users/3'), true);
@@ -86,5 +86,13 @@ void main() {
         AjanuwRouter.routers['users/:id/settings'].exp
             .hasMatch('users/3/about'),
         false);
+  });
+
+  test('ajanuwRouterBaseHref = "/www"', () {
+    expect(AjanuwRouter.ajanuwRouterBaseHref, '/www');
+  });
+
+  test('path home of url is = "/www/home"', () {
+    expect(AjanuwRouter.routers['home'].url, '/www/home');
   });
 }

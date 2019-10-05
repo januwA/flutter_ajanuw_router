@@ -60,8 +60,9 @@ List<AjanuwRoute> routes = [
       (AjanuwRouting routing) {
         bool isLogin = authService.islogin;
         if (isLogin) return true;
-        print(routing.url);
-        authService.redirectTo = routing.url;
+        print(routing.url); // baseHref+path
+        print(routing.path); // path
+        authService.redirectTo = routing.path;
         print('未登录，重定向登陆页面!!');
         router.navigator.pushNamed('/login');
         return false;
@@ -86,8 +87,8 @@ List<AjanuwRoute> routes = [
         canActivate: [
           (AjanuwRouting routing) {
             // 没有id拒绝访问
-            print(routing.settings.paramMap);
             final paramMap = routing.settings.paramMap;
+            print(paramMap);
             if (paramMap['id'] == null) {
               router.navigator.pushReplacementNamed('/users');
               return false;

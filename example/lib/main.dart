@@ -8,12 +8,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      initialRoute: '/login',
       navigatorKey: router.navigatorKey,
-      onGenerateRoute: router.forRoot(routes),
+      onGenerateRoute: router.forRoot(routes, baseHref: '/www/v2'),
 
-      /// 如果以防万一，可以把这个设置上
-      // onUnknownRoute: (s) {},
+      /// 如果设置了这个，拦截将无效
+      // onUnknownRoute: (s) {
+      //   return MaterialPageRoute(
+      //     builder: (_) => Scaffold(
+      //       body: Center(child: Text('data'),),
+      //     ),
+      //   );
+      // },
     );
   }
 }

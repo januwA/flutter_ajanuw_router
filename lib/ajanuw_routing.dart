@@ -1,18 +1,20 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_ajanuw_router/ajanuw_route.dart';
-import 'package:flutter_ajanuw_router/path.dart';
 
+import 'ajanuw_route.dart';
+import 'util/replace_first.dart';
 import 'ajanuw_route_settings.dart';
 import 'flutter_ajanuw_router.dart';
 
 class AjanuwRouting {
   final String path;
-  String get url => p.join(AjanuwRouter.baseHref, path);
+  String url;
   final AjanuwRoute route;
 
   AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) =>
-      _createPageRouteBuilder(settings: settings);
+      _createPageRouteBuilder(settings: settings.copyWith(name: url));
 
   final AjanuwRouteSettings settings;
 
@@ -51,7 +53,8 @@ class AjanuwRouting {
       }
       exp += expItem;
     }
-    RegExp parseExp = RegExp("${exp.replaceFirst('/', '')}", dotAll: true);
+    exp = removeFirstString(exp);
+    RegExp parseExp = RegExp("$exp", dotAll: true);
     return parseExp;
   }
 
@@ -65,6 +68,7 @@ class AjanuwRouting {
   AjanuwRouting({
     @required this.path,
     @required this.route,
+    this.url,
     this.settings,
     this.parent,
   });
@@ -73,16 +77,11 @@ class AjanuwRouting {
     String url,
     String path,
     AjanuwRoute route,
-    List<DynamicRoutingParam> params,
-    RegExp exp,
-    AjanuwRouteFactory builder,
-    List<CanActivate> canActivate,
-    List<CanActivateChild> canActivateChild,
-    String redirectTo,
     AjanuwRouteSettings settings,
     String parent,
   }) {
     return AjanuwRouting(
+      url: url ?? this.url,
       path: path ?? this.path,
       route: route ?? this.route,
       settings: settings ?? this.settings,
@@ -115,7 +114,7 @@ class AjanuwRouting {
     if (route.isAnimatedRoute) {
       return PageRouteBuilder(
         settings: settings,
-        transitionDuration: route?.transitionDuration ?? kTabScrollDuration,
+        transitionDuration: route.transitionDuration,
         pageBuilder: (context, animation, secondaryAnimation) =>
             _createBuilder(context, route),
         transitionsBuilder: route.transitionsBuilder,
@@ -128,6 +127,20 @@ class AjanuwRouting {
         settings: settings,
       );
     }
+  }
+
+  @override
+  String toString() {
+    return jsonEncode({
+      'path': path,
+      'url': url,
+      'route': route.toString(),
+      'settings': settings,
+      'parent': parent,
+      'params': params,
+      'exp': exp,
+      // 'type': type,
+    });
   }
 }
 

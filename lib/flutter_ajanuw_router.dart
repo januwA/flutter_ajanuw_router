@@ -1,8 +1,9 @@
 library flutter_ajanuw_router;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_ajanuw_router/path.dart';
 
+import 'util/path.dart';
+import 'util/replace_first.dart';
 import 'ajanuw_route.dart';
 import 'ajanuw_route_settings.dart';
 import 'ajanuw_routing.dart';
@@ -13,30 +14,43 @@ typedef CanActivate = bool Function(AjanuwRouting routing);
 typedef CanActivateChild = bool Function(AjanuwRouting routing);
 
 class AjanuwRouter {
-  static final String baseHref = '/';
+  static String ajanuwRouterBaseHref;
 
-  /// 所有路由将被打平放在这里面
+  /// 所有路由将被打平放在这里面，如果需要可以获取
+  /// ```dart
+  /// print(AjanuwRouter.routers);
+  /// ```
   static final Map<String, AjanuwRouting> routers = {};
 
-  /// 普通路由
-  // static Map<String, AjanuwRouting> _routers = {};
-
-  /// 404页面
-  // static AjanuwRouting _notFound;
-
+  /// 必须在[MaterialApp]中设置[navigatorKey]，才能使用[router.navigator]
+  ///
+  /// ```dart
+  /// // example
+  /// class MyApp extends StatelessWidget {
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     return MaterialApp(
+  ///       navigatorKey: router.navigatorKey,
+  ///       onGenerateRoute: router.forRoot(routes),
+  ///     );
+  ///   }
+  /// }
+  /// ```
   GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   /// 导航控制器
+  ///
+  /// ```dart
+  /// router.navigator.pushNamed('/home');
+  /// ```
   NavigatorState get navigator => navigatorKey.currentState;
 
+  /// 将跳转路径[settings.name]从[routers]里面匹配出对应的[Routing]
   static AjanuwRouting _matchPath(
-    AjanuwRouteSettings settings,
+    RouteSettings settings,
   ) {
-    String routeName = settings.name;
     // /home -> home
-    if (routeName.startsWith('/')) {
-      routeName = routeName.replaceFirst('/', '');
-    }
+    String routeName = removeFirstString(settings.name);
 
     // 如果能映射，直接返回
     if (routers.containsKey(routeName)) {
@@ -44,26 +58,40 @@ class AjanuwRouter {
     }
 
     // 找不到估计就是动态路由
-    // users/3 -> users/:id
-    final Pattern pattern = '/';
-    List<String> routeNameSplit = routeName.split(pattern);
-    final List<AjanuwRouting> dynamicRouters = routers.values.where((routing) {
-      return routing.type == AjanuwRouteType.dynamic;
-    }).toList();
+    // 拉出所有动态路由
+    final List<AjanuwRouting> dynamicRouters = _getAllDynamicRoutings();
     for (var routing in dynamicRouters) {
-      List<String> dynamicRouteNameSplit = routing.path.split(pattern);
-      final bool equalRouteLength =
-          routeNameSplit.length == dynamicRouteNameSplit.length;
-      if (equalRouteLength && routing.exp.hasMatch(routeName)) {
+      if (_matchDynamicRoute(routeName, routing)) {
         return routing;
       }
     }
 
     // 什么都没找到，返回404
-    print('什么都没找到，返回404');
     return routers[AjanuwRoute.notFoundRouteName];
   }
 
+  /// 获取所有[AjanuwRouteType.dynamic]的routing
+  static List<AjanuwRouting> _getAllDynamicRoutings() {
+    return routers.values
+        .where((routing) => routing.type == AjanuwRouteType.dynamic)
+        .toList();
+  }
+
+  /// /users/2 匹配 /users/:id
+  static bool _matchDynamicRoute(
+      String routeName, AjanuwRouting dynamicRouting) {
+    final Pattern pattern = '/';
+    List<String> routeNameSplit = routeName.split(pattern);
+    List<String> dynamicRouteNameSplit = dynamicRouting.path.split(pattern);
+    final bool equalRouteLength =
+        routeNameSplit.length == dynamicRouteNameSplit.length;
+    return equalRouteLength &&
+        dynamicRouting.exp.hasMatch(routeNameSplit.join(pattern));
+  }
+
+  /// TODO: 如何解决拦截时产生的错误
+  /// TODO: 设置[onUnknownRoute]将会使拦截时重定向失败
+  /// TODO: 如何做异步拦截器
   /// 访问该路由，是否有权限
   static bool _hasCanActivate(AjanuwRouting routing) {
     if (routing.route?.canActivate?.isNotEmpty ?? false) {
@@ -79,12 +107,13 @@ class AjanuwRouter {
   }
 
   /// 解析出动态路由的参数
-  static Map<String, String> _snapshot(String routeName, AjanuwRouting dr) {
+  static Map<String, String> _snapshot(
+      String routeName, AjanuwRouting dynamicRouting) {
     Map<String, String> paramMap = {};
-    routeName.replaceAllMapped(dr.exp, (Match m) {
+    routeName.replaceAllMapped(dynamicRouting.exp, (Match m) {
       for (int i = 0; i < m.groupCount; i++) {
-        DynamicRoutingParam item = dr.params[i];
-        String key = item.name.replaceFirst(':', '');
+        DynamicRoutingParam item = dynamicRouting.params[i];
+        String key = removeFirstString(item.name, ':');
         String value = m[i + 1];
         paramMap[key] = value;
       }
@@ -142,25 +171,48 @@ class AjanuwRouter {
   }
 
   /// 初始化应用程序的导航
-  AjanuwRouteFactory forRoot(List<AjanuwRoute> configRoutes) {
+  AjanuwRouteFactory forRoot(
+    List<AjanuwRoute> configRoutes, {
+    String baseHref = '/',
+  }) {
+    ajanuwRouterBaseHref = baseHref;
     _forRoot(configRoutes);
     return onGenerateRoute;
   }
 
   /// [navigtor.pop()]并不会触发[onGenerateRoute]
   static AjanuwRouteFactory onGenerateRoute = (RouteSettings settings) {
-    /// [settings.name]在使用[navigator.pushNamed(name)]时[settings.name = name]
-    /// 扩展[RouteSettings]，为了能够在[settings]加上动态路由的值
+    // [settings.name]在使用[navigator.pushNamed(name)]时[settings.name = name]
+    String routeName = settings.name;
+    print(routeName);
+
+    // 使用[settings]在[routers]里面匹配到对应的路由
+    AjanuwRouting routing = _matchPath(settings);
+
+    /// 这个url，最终将会在浏览器上表现出来
+    String url;
+    if (p.isWithin(ajanuwRouterBaseHref, routeName)) {
+      // /www  /www/home
+      url = p.join(ajanuwRouterBaseHref, settings.name);
+    } else if (p.isAbsolute(settings.name)) {
+      // /www  /home
+      url = ajanuwRouterBaseHref + settings.name;
+    } else {
+      // /www  home
+      url = p.join(ajanuwRouterBaseHref, settings.name);
+    }
+
+    routing = routing.copyWith(url: url);
+
+    // [AjanuwRouteSettings]扩展了[RouteSettings]
+    // 为了能够在[settings]加上动态路由的值
     final ajanuwRouteSettings = AjanuwRouteSettings.extend(settings: settings);
 
-    /// 使用[settings]在[routers]里卖匹配到对应的路由
-    AjanuwRouting routing = _matchPath(ajanuwRouteSettings);
-
     if (routing.type == AjanuwRouteType.redirect) {
-      String redirectName = routing.route.redirectTo.replaceFirst('/', '');
+      String redirectName = removeFirstString(routing.route.redirectTo);
       if (_hasCanActivate(routing)) {
         return onGenerateRoute(AjanuwRouteSettings(
-          name: p.join(baseHref, redirectName),
+          name: redirectName,
           isInitialRoute: ajanuwRouteSettings.isInitialRoute,
           arguments: ajanuwRouteSettings.arguments,
         ));
@@ -169,10 +221,13 @@ class AjanuwRouter {
     }
 
     if (routing.type == AjanuwRouteType.dynamic) {
-      var paramMap = _snapshot(ajanuwRouteSettings.name, routing);
+      var paramMap = _snapshot(routeName, routing);
 
       var r = routing.copyWith(
-        settings: ajanuwRouteSettings.copyWith(paramMap: paramMap),
+        settings: ajanuwRouteSettings.copyWith(
+          name: routing.url,
+          paramMap: paramMap,
+        ),
       );
       return _hasCanActivate(r) ? r.builder(ajanuwRouteSettings) : null;
     }
