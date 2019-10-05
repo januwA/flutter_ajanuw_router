@@ -1,8 +1,8 @@
 name: flutter_ajanuw_router
 description: A router used on Flutter and Flutter WEB.
-version: 0.0.5
-author:
-homepage:
+version: 0.1.0
+author: Ajanuw <ajanuw1995@gmail.com>
+homepage: https://github.com/januwA/flutter_ajanuw_router
 
 environment:
   sdk: '>=2.1.0 <3.0.0'
