@@ -16,44 +16,57 @@ void main() {
 
   setUpAll(() {
     final builder = (c, s) => home;
-    router.forRoot([
-      AjanuwRoute(
-        path: '',
-        redirectTo: 'home',
-      ),
-      AjanuwRoute(
-        path: 'home',
-        builder: builder,
-      ),
-      AjanuwRoute(
-        path: 'not-found',
-        builder: builder,
-      ),
-      AjanuwRoute(
-        path: 'users',
-        builder: builder,
-        children: [
-          AjanuwRoute(
-            path: ':id',
-            builder: builder,
-            children: [
-              AjanuwRoute(
-                path: 'settings',
-                builder: builder,
-              ),
-              AjanuwRoute(
-                path: 'about',
-                builder: builder,
-              ),
-            ],
-          ),
-        ],
-      ),
-      AjanuwRoute(
-        path: '**',
-        redirectTo: '/not-found',
-      ),
-    ], baseHref: '/www');
+    router.forRoot(
+      [
+        AjanuwRoute(
+          path: '',
+          redirectTo: '/home',
+        ),
+        AjanuwRoute(
+          path: 'home',
+          builder: builder,
+        ),
+        AjanuwRoute(
+          path: 'not-found',
+          builder: builder,
+        ),
+        AjanuwRoute(
+          path: 'dogs',
+          builder: builder,
+          children: [
+            AjanuwRoute(
+              path: ':id',
+              builder: builder,
+            ),
+          ],
+        ),
+        AjanuwRoute(
+          path: 'users',
+          builder: builder,
+          children: [
+            AjanuwRoute(
+              path: ':id',
+              builder: builder,
+              children: [
+                AjanuwRoute(
+                  path: 'settings',
+                  builder: builder,
+                ),
+                AjanuwRoute(
+                  path: 'about',
+                  builder: builder,
+                ),
+              ],
+            ),
+          ],
+        ),
+        AjanuwRoute(
+          path: '**',
+          redirectTo: '/not-found',
+        ),
+      ],
+      initialRoute: '/',
+    );
     home = Home();
   });
 
@@ -78,21 +91,14 @@ void main() {
   }, skip: false);
 
   test('test exp match of dynamic route', () {
-    expect(AjanuwRouter.routers['users/:id'].exp.hasMatch('users/3'), true);
+    expect(AjanuwRouter.routers['/users/:id'].exp.hasMatch('/users/3'), true);
+    expect(AjanuwRouter.routers['/users/:id'].exp.hasMatch('/dogs/3'), false);
     expect(
-        AjanuwRouter.routers['users/:id/about'].exp.hasMatch('users/3/about'),
+        AjanuwRouter.routers['/users/:id/about'].exp.hasMatch('/users/3/about'),
         true);
     expect(
-        AjanuwRouter.routers['users/:id/settings'].exp
-            .hasMatch('users/3/about'),
+        AjanuwRouter.routers['/users/:id/settings'].exp
+            .hasMatch('/users/3/about'),
         false);
-  });
-
-  test('ajanuwRouterBaseHref = "/www"', () {
-    expect(AjanuwRouter.ajanuwRouterBaseHref, '/www');
-  });
-
-  test('path home of url is = "/www/home"', () {
-    expect(AjanuwRouter.routers['home'].url, '/www/home');
   });
 }

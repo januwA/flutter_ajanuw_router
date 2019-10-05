@@ -50,7 +50,7 @@ class _HomeState extends State<Home> {
             RaisedButton(
               child: Text('to home'),
               onPressed: () {
-                router.navigator.pushNamed('/home');
+                router.navigator.pushNamed('/');
               },
             ),
             RaisedButton(

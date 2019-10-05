@@ -22,7 +22,7 @@ class AjanuwRouting {
   final String parent;
 
   /// 使用'/'分隔[route.path]
-  List<String> get pathSplit => route.path.split('/');
+  List<String> get pathSplit => path.split('/');
 
   /// 在被判断为动态路由时，将会填充这个对象
   /// 解析出动态参数，和动态参数的位置

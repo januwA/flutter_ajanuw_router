@@ -14,7 +14,8 @@ typedef CanActivate = bool Function(AjanuwRouting routing);
 typedef CanActivateChild = bool Function(AjanuwRouting routing);
 
 class AjanuwRouter {
-  static String ajanuwRouterBaseHref;
+  static final String baseHref = '/';
+  static String ajanuwInitialRoute;
 
   /// 所有路由将被打平放在这里面，如果需要可以获取
   /// ```dart
@@ -31,7 +32,6 @@ class AjanuwRouter {
   ///   Widget build(BuildContext context) {
   ///     return MaterialApp(
   ///       navigatorKey: router.navigatorKey,
-  ///       onGenerateRoute: router.forRoot(routes),
   ///     );
   ///   }
   /// }
@@ -46,12 +46,7 @@ class AjanuwRouter {
   NavigatorState get navigator => navigatorKey.currentState;
 
   /// 将跳转路径[settings.name]从[routers]里面匹配出对应的[Routing]
-  static AjanuwRouting _matchPath(
-    RouteSettings settings,
-  ) {
-    // /home -> home
-    String routeName = removeFirstString(settings.name);
-
+  static AjanuwRouting _matchPath(String routeName) {
     // 如果能映射，直接返回
     if (routers.containsKey(routeName)) {
       return routers[routeName];
@@ -65,9 +60,7 @@ class AjanuwRouter {
         return routing;
       }
     }
-
-    // 什么都没找到，返回404
-    return routers[AjanuwRoute.notFoundRouteName];
+    return null;
   }
 
   /// 获取所有[AjanuwRouteType.dynamic]的routing
@@ -90,9 +83,9 @@ class AjanuwRouter {
   }
 
   /// TODO: 如何解决拦截时产生的错误
-  /// TODO: 设置[onUnknownRoute]将会使拦截时重定向失败
   /// TODO: 如何做异步拦截器
   /// 访问该路由，是否有权限
+  /// 设置[onUnknownRoute]将会使拦截时重定向失败
   static bool _hasCanActivate(AjanuwRouting routing) {
     if (routing.route?.canActivate?.isNotEmpty ?? false) {
       for (CanActivate t in routing.route?.canActivate) {
@@ -122,7 +115,7 @@ class AjanuwRouter {
     return paramMap;
   }
 
-  void _forRoot(List<AjanuwRoute> configRoutes, [String parentPath = '']) {
+  void _forRoot(List<AjanuwRoute> configRoutes, String parentPath) {
     for (var i = 0; i < configRoutes.length; i++) {
       final AjanuwRoute route = configRoutes[i];
 
@@ -173,67 +166,78 @@ class AjanuwRouter {
   /// 初始化应用程序的导航
   AjanuwRouteFactory forRoot(
     List<AjanuwRoute> configRoutes, {
-    String baseHref = '/',
+    @required String initialRoute,
   }) {
-    ajanuwRouterBaseHref = baseHref;
-    _forRoot(configRoutes);
+    ajanuwInitialRoute = initialRoute;
+    _forRoot(configRoutes, baseHref);
     return onGenerateRoute;
   }
 
+  static bool _firstNavigotor = true;
+
   /// [navigtor.pop()]并不会触发[onGenerateRoute]
+  /// 在浏览器上很诡异
+  /// 如访问 'http://localhost:57313/#/www/data/aaa'
+  /// /
+  /// /www
+  /// /www/data
+  /// /www/data/aaa
+  /// 依次推入
   static AjanuwRouteFactory onGenerateRoute = (RouteSettings settings) {
-    // [settings.name]在使用[navigator.pushNamed(name)]时[settings.name = name]
     String routeName = settings.name;
-    print(routeName);
-
-    // 使用[settings]在[routers]里面匹配到对应的路由
-    AjanuwRouting routing = _matchPath(settings);
-
-    /// 这个url，最终将会在浏览器上表现出来
-    String url;
-    if (p.isWithin(ajanuwRouterBaseHref, routeName)) {
-      // /www  /www/home
-      url = p.join(ajanuwRouterBaseHref, settings.name);
-    } else if (p.isAbsolute(settings.name)) {
-      // /www  /home
-      url = ajanuwRouterBaseHref + settings.name;
-    } else {
-      // /www  home
-      url = p.join(ajanuwRouterBaseHref, settings.name);
-    }
-
-    routing = routing.copyWith(url: url);
 
     // [AjanuwRouteSettings]扩展了[RouteSettings]
     // 为了能够在[settings]加上动态路由的值
     final ajanuwRouteSettings = AjanuwRouteSettings.extend(settings: settings);
 
-    if (routing.type == AjanuwRouteType.redirect) {
-      String redirectName = removeFirstString(routing.route.redirectTo);
-      if (_hasCanActivate(routing)) {
-        return onGenerateRoute(AjanuwRouteSettings(
-          name: redirectName,
-          isInitialRoute: ajanuwRouteSettings.isInitialRoute,
-          arguments: ajanuwRouteSettings.arguments,
-        ));
+    // 为什么要做这个判断？
+    // 因为Flutter在程序启动会自动发送一个为'/'的路由进来
+    // 如果用户设置了'/'route则会发生匹配，页面入栈: [ / ]
+    // 但是当用户的[initialRoute]设置为，如'/login'时，初始化页面应该是'login'，但是此时的栈是[/, login]
+    // 所以在第一次检测Flutetr自动推进来的'/'是否为用户设置的[initialRoute]
+    // 如果是，则继续导航，不是则跳过
+    if (_firstNavigotor) {
+      if (routeName != ajanuwInitialRoute) {
+        _firstNavigotor = false;
+        return null;
       }
-      return null;
+      _firstNavigotor = false;
     }
 
+    // 使用[settings]在[routers]里面匹配到对应的路由
+    AjanuwRouting routing = _matchPath(settings.name) ??
+        _matchPath(p.join(baseHref, AjanuwRoute.notFoundRouteName));
+
+    routing = routing.copyWith(url: settings.name);
+
+    // 如果是动态路由，先解析出参数
     if (routing.type == AjanuwRouteType.dynamic) {
       var paramMap = _snapshot(routeName, routing);
-
-      var r = routing.copyWith(
+      routing = routing.copyWith(
         settings: ajanuwRouteSettings.copyWith(
           name: routing.url,
           paramMap: paramMap,
         ),
       );
-      return _hasCanActivate(r) ? r.builder(ajanuwRouteSettings) : null;
     }
 
-    return _hasCanActivate(routing)
-        ? routing.builder(ajanuwRouteSettings)
-        : null;
+    // 拦截器
+    if (!_hasCanActivate(routing)) {
+      return null;
+    }
+
+    if (routing.type == AjanuwRouteType.redirect) {
+      String redirectName = routing.route.redirectTo;
+      if (p.isRelative(redirectName)) {
+        redirectName = p.join(baseHref, redirectName);
+      }
+      return onGenerateRoute(AjanuwRouteSettings(
+        name: redirectName,
+        isInitialRoute: ajanuwRouteSettings.isInitialRoute,
+        arguments: ajanuwRouteSettings.arguments,
+      ));
+    }
+
+    return routing.builder(ajanuwRouteSettings);
   };
 }
