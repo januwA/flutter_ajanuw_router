@@ -1,6 +1,6 @@
-import 'package:example/data/users.dart';
-import 'package:example/router/main.dart';
 import 'package:flutter/material.dart';
+import 'package:example/main.dart';
+import '../data/users.dart';
 
 class User extends StatefulWidget {
   final int id;

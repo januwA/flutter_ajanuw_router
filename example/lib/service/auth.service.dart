@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:example/router/main.dart';
+import 'package:example/main.dart';
 
 class AuthService {
   AuthService() {
