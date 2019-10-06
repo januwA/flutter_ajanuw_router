@@ -17,6 +17,7 @@ class AjanuwRouting {
       _createPageRouteBuilder(settings: settings.copyWith(name: url));
 
   final AjanuwRouteSettings settings;
+  Map<String, dynamic> get paramMap => settings.paramMap;
 
   /// 只有包含在[children]里面的路由，才设置parent
   final String parent;
@@ -94,14 +95,14 @@ class AjanuwRouting {
     return Title(
       title: route?.title,
       color: route?.color ?? Theme.of(context).primaryColor,
-      child: route.builder(context, settings),
+      child: route.builder(context, this),
     );
   }
 
   Widget _createBuilder(BuildContext context, AjanuwRoute route) {
     return route.title != null || route.color != null
         ? _createTitle(context, route)
-        : route.builder(context, settings);
+        : route.builder(context, this);
   }
 
   /// 将[AjanuwRoute]的配置生成对应的[PageRoute]

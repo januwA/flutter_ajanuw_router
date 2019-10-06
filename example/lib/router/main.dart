@@ -25,12 +25,12 @@ List<AjanuwRoute> routes = [
   AjanuwRoute(
     path: 'home',
     title: 'home',
-    builder: (context, settings) => Home(),
+    builder: (context, r) => Home(),
   ),
   AjanuwRoute(
     path: 'login',
     title: '登陆',
-    builder: (context, settings) => Title(
+    builder: (context, r) => Title(
       title: '登陆',
       color: Theme.of(context).primaryColor,
       child: Login(),
@@ -55,7 +55,7 @@ List<AjanuwRoute> routes = [
   AjanuwRoute(
     path: 'admin',
     title: '控制台',
-    builder: (context, settings) => Admin(),
+    builder: (context, r) => Admin(),
     canActivate: [
       (AjanuwRouting routing) {
         bool isLogin = authService.islogin;
@@ -79,7 +79,7 @@ List<AjanuwRoute> routes = [
   AjanuwRoute(
     title: '用户组',
     path: 'users',
-    builder: (context, settings) => Users(),
+    builder: (context, r) => Users(),
     children: [
       AjanuwRoute(
         title: '用户详情',
@@ -102,9 +102,9 @@ List<AjanuwRoute> routes = [
             }
           }
         ],
-        builder: (BuildContext context, settings) {
+        builder: (BuildContext context, r) {
           // 其实解析参数，放在[User]页面解析比较好，因为可以预防各种问题
-          int id = int.parse(settings.paramMap['id']);
+          int id = int.parse(r.paramMap['id']);
           return User(id: id);
         },
         children: [
@@ -120,7 +120,7 @@ List<AjanuwRoute> routes = [
   AjanuwRoute(
     title: '页面未找到',
     path: 'not-found',
-    builder: (context, settings) => NotFound(),
+    builder: (context, r) => NotFound(),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       var begin = 0.0;
       var end = 1.0;

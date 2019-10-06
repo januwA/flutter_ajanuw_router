@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'ajanuw_route_settings.dart';
+import 'package:flutter_ajanuw_router/ajanuw_routing.dart';
 import 'flutter_ajanuw_router.dart';
 
 typedef AjanuwRouteBuilder = Widget Function(
-    BuildContext conetxt, AjanuwRouteSettings settings);
+    BuildContext conetxt, AjanuwRouting routing);
 
 enum AjanuwRouteType {
   /// { path="xxx", redirectTo='/home' }
@@ -40,9 +40,9 @@ class AjanuwRoute {
   final bool maintainState;
 
   /// Flutetr web document.title
-  /// 
+  ///
   /// 可能会出现异常行为，尝试将[maintainState]设置为'false'
-  /// 
+  ///
   /// 请仔细看[maintainState]属性的说明
   final String title;
 

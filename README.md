@@ -18,7 +18,7 @@ dependencies:
 ```dart
 // main.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_ajanuw_router/ajanuw_router.dart';
+import 'package:flutter_ajanuw_router/flutter_ajanuw_router.dart';
 
 final AjanuwRouter router = AjanuwRouter();
 
