@@ -1,4 +1,5 @@
 import 'package:example/data/users.dart';
+import 'package:example/pages/dog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ajanuw_router/ajanuw_route.dart';
 import 'package:flutter_ajanuw_router/ajanuw_routing.dart';
@@ -35,6 +36,10 @@ class MyApp extends StatelessWidget {
         path: 'home',
         title: 'home',
         builder: (context, r) => Home(),
+      ),
+      AjanuwRoute(
+        path: 'dog/:id',
+        builder: (context, r) => Dog(id: r.paramMap['id']),
       ),
       AjanuwRoute(
         path: 'login',

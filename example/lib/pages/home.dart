@@ -39,6 +39,12 @@ class _HomeState extends State<Home> {
               },
             ),
             RaisedButton(
+              child: Text('dog 1'),
+              onPressed: () {
+                router.navigator.pushNamed('/dog/1');
+              },
+            ),
+            RaisedButton(
               child: Text('login'),
               onPressed: () {
                 router.navigator.pushNamed('/login');

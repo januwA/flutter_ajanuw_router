@@ -152,14 +152,12 @@ class AjanuwRouter {
         }
       }
 
-      // 普通路由
-      if (route.type == AjanuwRouteType.normal) {
-        String path = p.join(parentPath, route.path);
-        routers[path] = AjanuwRouting(
-          path: path,
-          route: route,
-        );
-      }
+      // 普通路由和动态路由
+      String path = p.join(parentPath, route.path);
+      routers[path] = AjanuwRouting(
+        path: path,
+        route: route,
+      );
     }
   }
 
