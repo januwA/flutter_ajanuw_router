@@ -17,9 +17,11 @@ class AjanuwRouter {
   static final String baseHref = '/';
   static String ajanuwInitialRoute;
 
-  /// 所有路由将被打平放在这里面，如果需要可以获取
+  /// 所有路由将被打平放在这里面，如果需要可以查看
   /// ```dart
-  /// print(AjanuwRouter.routers);
+  /// for (var item in AjanuwRouter.routers.entries) {
+  ///   print(item.key);
+  /// }
   /// ```
   static final Map<String, AjanuwRouting> routers = {};
 
@@ -206,10 +208,7 @@ class AjanuwRouter {
     AjanuwRouting routing = _matchPath(settings.name) ??
         _matchPath(p.join(baseHref, AjanuwRoute.notFoundRouteName));
 
-    routing = routing.copyWith(
-      url: settings.name,
-      settings: ajanuwRouteSettings,
-    );
+    routing = routing.copyWith(settings: ajanuwRouteSettings);
 
     // 如果是动态路由，先解析出参数
     if (routing.type == AjanuwRouteType.dynamic) {

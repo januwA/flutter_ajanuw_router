@@ -13,9 +13,9 @@ class AjanuwRouting {
   final AjanuwRoute route;
 
   final AjanuwRouteSettings settings;
-  AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) =>
-      _createPageRouteBuilder(settings: settings);
-
+  AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) {
+        return _createPageRouteBuilder(settings: settings);
+      };
 
   /// 动态路由参数
   /// ```dart
@@ -85,7 +85,6 @@ class AjanuwRouting {
   });
 
   AjanuwRouting copyWith({
-    String url,
     String path,
     AjanuwRoute route,
     AjanuwRouteSettings settings,

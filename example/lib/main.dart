@@ -1,4 +1,3 @@
-import 'package:example/data/users.dart';
 import 'package:example/pages/dog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ajanuw_router/ajanuw_route.dart';
@@ -72,11 +71,8 @@ class MyApp extends StatelessWidget {
         builder: (context, r) => Admin(),
         canActivate: [
           (AjanuwRouting routing) {
-            bool isLogin = authService.islogin;
-            if (isLogin) return true;
-            print(routing.path); // path
+            if (authService.islogin) return true;
             authService.redirectTo = routing.path;
-            print('未登录，重定向登陆页面!!');
             router.navigator.pushNamed('/login');
             return false;
           }
@@ -93,12 +89,6 @@ class MyApp extends StatelessWidget {
         title: '用户组',
         path: 'users',
         builder: (context, r) => Users(),
-        canActivate: [
-          (r) {
-            print(r.settings.arguments);
-            return true;
-          }
-        ],
         children: [
           AjanuwRoute(
             title: '用户详情',
@@ -107,9 +97,6 @@ class MyApp extends StatelessWidget {
               (AjanuwRouting routing) {
                 // 没有id拒绝访问
                 final paramMap = routing.settings.paramMap;
-                print(paramMap);
-                UserData u = routing.arguments;
-                print(u?.name);
                 if (paramMap['id'] == null) {
                   router.navigator.pushReplacementNamed('/users');
                   return false;
