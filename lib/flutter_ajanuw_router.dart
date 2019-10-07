@@ -208,16 +208,16 @@ class AjanuwRouter {
     AjanuwRouting routing = _matchPath(settings.name) ??
         _matchPath(p.join(baseHref, AjanuwRoute.notFoundRouteName));
 
-    routing = routing.copyWith(url: settings.name);
+    routing = routing.copyWith(
+      url: settings.name,
+      settings: ajanuwRouteSettings,
+    );
 
     // 如果是动态路由，先解析出参数
     if (routing.type == AjanuwRouteType.dynamic) {
       var paramMap = _snapshot(routeName, routing);
       routing = routing.copyWith(
-        settings: ajanuwRouteSettings.copyWith(
-          name: routing.url,
-          paramMap: paramMap,
-        ),
+        settings: ajanuwRouteSettings.copyWith(paramMap: paramMap),
       );
     }
 
@@ -231,13 +231,11 @@ class AjanuwRouter {
       if (p.isRelative(redirectName)) {
         redirectName = p.join(baseHref, redirectName);
       }
-      return onGenerateRoute(AjanuwRouteSettings(
+      return onGenerateRoute(ajanuwRouteSettings.copyWith(
         name: redirectName,
-        isInitialRoute: ajanuwRouteSettings.isInitialRoute,
-        arguments: ajanuwRouteSettings.arguments,
       ));
     }
 
-    return routing.builder(ajanuwRouteSettings);
+    return routing.builder(routing.settings);
   };
 }

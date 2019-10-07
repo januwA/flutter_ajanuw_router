@@ -44,7 +44,10 @@ class _UsersState extends State<Users> {
                   leading: Text('#' + u.id.toString()),
                   title: Text(u.name),
                   onTap: () {
-                    router.navigator.pushNamed('/users/${u.id}');
+                    router.navigator.pushNamed(
+                      '/users/${u.id}',
+                      arguments: u,
+                    );
                   },
                 ))
             .toList(),

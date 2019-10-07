@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 /// 扩展[RouteSettings]
 /// 增加[paramMap]属性，用来保存动态路由的参数
 class AjanuwRouteSettings extends RouteSettings {
-  final Map<String, dynamic> paramMap;
+  final Map<String, String> paramMap;
 
   AjanuwRouteSettings({
     this.paramMap,
@@ -27,7 +27,7 @@ class AjanuwRouteSettings extends RouteSettings {
 
   @override
   AjanuwRouteSettings copyWith({
-    Map<String, dynamic> paramMap,
+    Map<String, String> paramMap,
     String name,
     bool isInitialRoute,
     Object arguments,

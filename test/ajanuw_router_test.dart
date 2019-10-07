@@ -75,7 +75,6 @@ void main() {
       print('');
       print('-' * 10);
       print('key: ${item.key}');
-      print('url: ${item.value.url}');
 
       print('routing.path: ${item.value.path}');
       print('route.path: ${item.value.route.path}');

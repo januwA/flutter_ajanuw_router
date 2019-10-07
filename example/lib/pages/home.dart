@@ -20,7 +20,10 @@ class _HomeState extends State<Home> {
             RaisedButton(
               child: Text('users'),
               onPressed: () {
-                router.navigator.pushNamed('/users');
+                router.navigator.pushNamed(
+                  '/users',
+                  arguments: 'x',
+                );
               },
             ),
             RaisedButton(

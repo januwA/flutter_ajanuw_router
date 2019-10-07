@@ -10,14 +10,25 @@ import 'flutter_ajanuw_router.dart';
 
 class AjanuwRouting {
   final String path;
-  String url;
   final AjanuwRoute route;
 
-  AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) =>
-      _createPageRouteBuilder(settings: settings.copyWith(name: url));
-
   final AjanuwRouteSettings settings;
-  Map<String, dynamic> get paramMap => settings.paramMap;
+  AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) =>
+      _createPageRouteBuilder(settings: settings);
+
+
+  /// 动态路由参数
+  /// ```dart
+  /// path = 'user/:id'
+  ///
+  /// navigator.pushNamed('/user/2');
+  ///
+  /// routing.paramMap['id']; // 2 is String
+  /// ```
+  Map<String, String> get paramMap => settings.paramMap;
+
+  /// 这个参数在页面刷新就会为空
+  Object get arguments => settings.arguments;
 
   /// 只有包含在[children]里面的路由，才设置parent
   final String parent;
@@ -69,7 +80,6 @@ class AjanuwRouting {
   AjanuwRouting({
     @required this.path,
     @required this.route,
-    this.url,
     this.settings,
     this.parent,
   });
@@ -82,7 +92,6 @@ class AjanuwRouting {
     String parent,
   }) {
     return AjanuwRouting(
-      url: url ?? this.url,
       path: path ?? this.path,
       route: route ?? this.route,
       settings: settings ?? this.settings,
@@ -134,7 +143,6 @@ class AjanuwRouting {
   String toString() {
     return jsonEncode({
       'path': path,
-      'url': url,
       'route': route.toString(),
       'settings': settings,
       'parent': parent,
