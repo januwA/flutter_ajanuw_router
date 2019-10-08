@@ -208,6 +208,11 @@ class AjanuwRouter {
     AjanuwRouting routing = _matchPath(settings.name) ??
         _matchPath(p.join(baseHref, AjanuwRoute.notFoundRouteName));
 
+    //  没有注册[**]路由
+    if (routing == null) {
+      print('Did not find the registered [**] route, return to the blank page');
+      return MaterialPageRoute(builder: (_) => Scaffold());
+    }
     routing = routing.copyWith(settings: ajanuwRouteSettings);
 
     // 如果是动态路由，先解析出参数
