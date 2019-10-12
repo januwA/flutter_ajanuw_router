@@ -50,8 +50,6 @@ class AjanuwRoute {
 
   /// 与之匹配的路径，即使用路由器匹配表示法的URL字符串。
   ///
-  /// 默认为"/"（根路径）
-  ///
   /// 不要再path前面添加'/'，如：
   ///
   /// ```dart
@@ -61,7 +59,7 @@ class AjanuwRoute {
   final String path;
 
   /// 路径匹配时实例化的组件。
-  /// 如果子路由指定组件，则可以为空。
+  /// 如果包含[children]或[redirectTo]则可以为空。
   final AjanuwRouteBuilder builder;
 
   /// 为导航设置动画
@@ -94,6 +92,8 @@ class AjanuwRoute {
 
   /// The duration the transition lasts.
   final Duration transitionDuration;
+  ///是否为自定义动画路由
+  bool get isAnimatedRoute => transitionsBuilder != null;
 
   /// 路径匹配时重定向到的URL。
   /// 如果URL以斜杠（/）开头，则为绝对值，否则相对于路径URL。
@@ -106,14 +106,8 @@ class AjanuwRoute {
   /// 默认情况下，任何用户都可以激活。
   final List<CanActivate> canActivate;
 
-  /// TODO: 暂未实现
-  final List<CanActivateChild> canActivateChild;
-
   /// 一组指定嵌套路由的子Route对象的数组配置
   final List<AjanuwRoute> children;
-
-  ///是否为自定义动画路由
-  bool get isAnimatedRoute => transitionsBuilder != null;
 
   /// 关于[route]的类型
   ///
@@ -155,7 +149,6 @@ class AjanuwRoute {
     this.builder,
     this.redirectTo,
     this.canActivate,
-    this.canActivateChild,
     this.children,
   })  :
         // path 为必须参数
@@ -189,7 +182,6 @@ class AjanuwRoute {
     AjanuwRouteBuilder builder,
     String redirectTo,
     List<CanActivate> canActivate,
-    List<CanActivateChild> canActivateChild,
     List<AjanuwRoute> children,
   }) {
     return AjanuwRoute(
@@ -203,7 +195,6 @@ class AjanuwRoute {
       builder: builder ?? this.builder,
       redirectTo: redirectTo ?? this.redirectTo,
       canActivate: canActivate ?? this.canActivate,
-      canActivateChild: canActivateChild ?? this.canActivateChild,
       children: children ?? this.children,
     );
   }
@@ -217,10 +208,8 @@ class AjanuwRoute {
       'title': title,
       'color': color,
       'path': path,
-      'transitionDuration': transitionDuration,
       'redirectTo': redirectTo,
       'isAnimatedRoute': isAnimatedRoute,
-      // 'type': type.toString(),
     });
   }
 }

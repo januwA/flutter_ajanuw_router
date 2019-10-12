@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ajanuw_router/ajanuw_route.dart';
 import 'package:flutter_ajanuw_router/flutter_ajanuw_router.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_ajanuw_router/ajanuw_route_settings.dart';
 
 class Home extends StatelessWidget {
   @override
@@ -65,16 +66,15 @@ void main() {
           redirectTo: '/not-found',
         ),
       ],
-      initialRoute: '/',
     );
     home = Home();
   });
 
   test('routers is not empty', () {
     for (var item in AjanuwRouter.routers.entries) {
-      print('');
       print('-' * 10);
       print('key: ${item.key}');
+      print('parent: ${item.value.parent}');
 
       print('routing.path: ${item.value.path}');
       print('route.path: ${item.value.route.path}');
@@ -87,17 +87,17 @@ void main() {
       print('-' * 10);
     }
     expect(AjanuwRouter.routers.keys.length != 0, true);
-  }, skip: false);
+  }, skip: true);
 
   test('test exp match of dynamic route', () {
-    expect(AjanuwRouter.routers['/users/:id'].exp.hasMatch('/users/3'), true);
-    expect(AjanuwRouter.routers['/users/:id'].exp.hasMatch('/dogs/3'), false);
+    expect(AjanuwRouter.routers['users/:id'].exp.hasMatch('users/3'), true);
+    expect(AjanuwRouter.routers['users/:id'].exp.hasMatch('dogs/3'), false);
     expect(
-        AjanuwRouter.routers['/users/:id/about'].exp.hasMatch('/users/3/about'),
+        AjanuwRouter.routers['users/:id/about'].exp.hasMatch('users/3/about'),
         true);
     expect(
-        AjanuwRouter.routers['/users/:id/settings'].exp
-            .hasMatch('/users/3/about'),
+        AjanuwRouter.routers['users/:id/settings'].exp
+            .hasMatch('users/3/about'),
         false);
   });
 }

@@ -26,7 +26,7 @@ class _AdminState extends State<Admin> {
             RaisedButton(
               child: Text('add user'),
               onPressed: () async {
-                String name = (await router.navigator.pushNamed('/admin/add-user')) as String;
+                String name = (await router.navigator.pushNamed('add-user')) as String;
                 setState(() {
                   result = name.toUpperCase();
                 });

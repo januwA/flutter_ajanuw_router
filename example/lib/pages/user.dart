@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:example/main.dart';
+import 'package:flutter_ajanuw_router/flutter_ajanuw_router.dart';
 import '../data/users.dart';
 
 class User extends StatefulWidget {
@@ -21,6 +22,12 @@ class _UserState extends State<User> {
 
     return Scaffold(
       appBar: AppBar(
+        // leading: IconButton(
+        //   icon: Icon(Icons.arrow_back),
+        //   onPressed: () {
+        //     // router.navigator.popUntil(predicate);
+        //   },
+        // ),
         title: Text('User'),
       ),
       body: Center(
@@ -31,14 +38,30 @@ class _UserState extends State<User> {
             RaisedButton(
               child: Text('to user settings'),
               onPressed: () {
-                router.navigator.pushNamed('/users/${widget.id}/user-settings');
+                router.navigator.pushNamed('user-settings');
+              },
+            ),
+            RaisedButton(
+              child: Text('pushNamedAndRemoveUntil("/", (_) => false)'),
+              onPressed: () async {
+                await router.navigator
+                    .pushNamedAndRemoveUntil('/', (_) => false);
+              },
+            ),
+            RaisedButton(
+              child: Text(
+                  "pushNamedAndRemoveUntil('/users', ModalRoute.withName('/home'))"),
+              onPressed: () {
+                router.navigator.pushNamedAndRemoveUntil(
+                    '/users', ModalRoute.withName('/home'));
               },
             ),
             if (widget.id == 3)
               RaisedButton(
                 child: Text('to user 1'),
                 onPressed: () {
-                  router.navigator.pushNamed('/users/1');
+                  // router.navigator.pushNamed('/users/1');
+                  router.navigator.pushNamed('../1');
                 },
               ),
           ],

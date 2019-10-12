@@ -1,21 +1,20 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'ajanuw_route.dart';
-import 'util/replace_first.dart';
 import 'ajanuw_route_settings.dart';
 import 'flutter_ajanuw_router.dart';
+import 'util/path.dart';
+import 'util/remove_first_string.dart';
 
 class AjanuwRouting {
   final String path;
   final AjanuwRoute route;
 
   final AjanuwRouteSettings settings;
-  AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) {
-        return _createPageRouteBuilder(settings: settings);
-      };
+  String get url => p.normalize(p.join(AjanuwRouter.baseHref, settings.name));
+
+  AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) => pageRoute;
 
   /// 动态路由参数
   /// ```dart
@@ -81,7 +80,7 @@ class AjanuwRouting {
     @required this.path,
     @required this.route,
     this.settings,
-    this.parent,
+    this.parent = '',
   });
 
   AjanuwRouting copyWith({
@@ -113,16 +112,12 @@ class AjanuwRouting {
         : route.builder(context, this);
   }
 
-  /// 将[AjanuwRoute]的配置生成对应的[PageRoute]
-  Route<T> _createPageRouteBuilder<T>({
-    AjanuwRouteSettings settings,
-  }) {
-    // 重定向路由，没有直接的渲染对象
+  PageRoute get pageRoute {
     if (route.type == AjanuwRouteType.redirect) return null;
-
+    var _settings = settings.copyWith(name: url);
     if (route.isAnimatedRoute) {
       return PageRouteBuilder(
-        settings: settings,
+        settings: _settings,
         transitionDuration: route.transitionDuration,
         pageBuilder: (context, animation, secondaryAnimation) =>
             _createBuilder(context, route),
@@ -133,22 +128,21 @@ class AjanuwRouting {
         fullscreenDialog: route.fullscreenDialog,
         maintainState: route?.maintainState,
         builder: (context) => _createBuilder(context, route),
-        settings: settings,
+        settings: _settings,
       );
     }
   }
 
   @override
   String toString() {
-    return jsonEncode({
-      'path': path,
-      'route': route.toString(),
-      'settings': settings,
-      'parent': parent,
-      'params': params,
-      'exp': exp,
-      // 'type': type,
-    });
+    return """{
+  "path": $path,
+  "route": $route,
+  "parent": $parent,
+  "params": $params,
+  "exp": $exp,
+  "settings": $settings,
+}""";
   }
 }
 

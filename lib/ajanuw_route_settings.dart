@@ -31,6 +31,7 @@ class AjanuwRouteSettings extends RouteSettings {
     String name,
     bool isInitialRoute,
     Object arguments,
+    String path,
   }) {
     return AjanuwRouteSettings(
       paramMap: paramMap ?? this.paramMap,
@@ -38,5 +39,15 @@ class AjanuwRouteSettings extends RouteSettings {
       isInitialRoute: isInitialRoute ?? this.isInitialRoute,
       arguments: arguments ?? this.arguments,
     );
+  }
+
+  @override
+  String toString() {
+    return """{
+      "paramMap": $paramMap,
+      "name": $name,
+      "isInitialRoute": $isInitialRoute,
+      "arguments": $arguments,
+  }""";
   }
 }

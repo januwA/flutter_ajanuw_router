@@ -1,4 +1,4 @@
-import 'package:flutter_ajanuw_router/util/replace_first.dart';
+import 'package:flutter_ajanuw_router/util/remove_first_string.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 main() {
