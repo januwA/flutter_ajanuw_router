@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:example/main.dart';
-import 'package:flutter_ajanuw_router/flutter_ajanuw_router.dart';
 import '../data/users.dart';
 
 class User extends StatefulWidget {

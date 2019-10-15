@@ -19,7 +19,7 @@ enum AjanuwRouteType {
 }
 
 class AjanuwRoute {
-  /// 默认'**'
+  /// defualt '**'
   static const notFoundRouteName = '**';
 
   /// Whether this page route is a full-screen dialog.

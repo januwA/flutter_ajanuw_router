@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ajanuw_router/ajanuw_route.dart';
 import 'package:flutter_ajanuw_router/flutter_ajanuw_router.dart';
-import 'package:flutter_ajanuw_router/ajanuw_route_settings.dart';
 
 class Home extends StatelessWidget {
   @override

@@ -262,12 +262,15 @@ class AjanuwRouter {
       }
 
       // 普通路由和动态路由
-      String path = p.join(parentPath, route.path);
-      routers[path] = AjanuwRouting(
-        path: path,
-        route: route,
-        parent: parentPath,
-      );
+      // 跳过没有注册builder的路由
+      if (route.builder != null) {
+        String path = p.join(parentPath, route.path);
+        routers[path] = AjanuwRouting(
+          path: path,
+          route: route,
+          parent: parentPath,
+        );
+      }
     }
   }
 
