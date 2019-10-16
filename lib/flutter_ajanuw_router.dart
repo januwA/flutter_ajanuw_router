@@ -197,10 +197,7 @@ class AjanuwRouter {
         dynamicRouting.exp.hasMatch(routeNameSplit.join(pattern));
   }
 
-  /// TODO: 如何解决拦截时产生的错误
-  /// TODO: 如何做异步拦截器
   /// 访问该路由，是否有权限
-  /// 设置[onUnknownRoute]将会使拦截时重定向失败
   static bool _hasCanActivate(AjanuwRouting routing) {
     if (routing.route?.canActivate?.isNotEmpty ?? false) {
       for (CanActivate t in routing.route?.canActivate) {

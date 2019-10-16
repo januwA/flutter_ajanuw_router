@@ -137,6 +137,7 @@ class AjanuwRouting {
   String toString() {
     return """{
   "path": $path,
+  "url": $url,
   "route": $route,
   "parent": $parent,
   "params": $params,
