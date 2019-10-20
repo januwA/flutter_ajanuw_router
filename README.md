@@ -4,6 +4,16 @@ This library can solve most problems, but it can't solve all problems.
 
 > There may be many bugs, please use them carefully on important projects.
 
+## run demo
+
+```shell
+$ flutter channel master
+$ flutter upgrade
+$ flutter config --enable-web
+$ git clone https://github.com/januwA/flutter_ajanuw_router.git
+$ cd flutter_ajanuw_router/example
+$ flutter run -d chrome
+```
 
 ## install
 
