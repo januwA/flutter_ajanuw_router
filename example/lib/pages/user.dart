@@ -59,7 +59,6 @@ class _UserState extends State<User> {
               RaisedButton(
                 child: Text('to user 1'),
                 onPressed: () {
-                  // router.navigator.pushNamed('/users/1');
                   router.navigator.pushNamed('../1');
                 },
               ),

@@ -107,18 +107,25 @@ class AjanuwRouter {
           break;
         case AjanuwRouteObserverType.didRemove:
           Route<dynamic> to = observer.to;
-          if (history.isNotEmpty) {
-            if (to != null) {
-              if (to.settings.name != history.last.settings.name) {
-                history.removeLast();
-              }
-            } else {
+          if (to != null) {
+            if (to.settings.name != history.last.settings.name) {
+              // print(history.last.settings.name);
               history.removeLast();
+            }
+          } else {
+            // pushNamedAndRemoveUntil('/', (_) => false)
+            // 当返回false的时候to就为null
+
+            // 先push在remove，跳过最后一个
+            int _index = history.length - 2;
+            if (_index >= 0) {
+              history.removeAt(_index);
             }
           }
           break;
         default:
       }
+      // print(history.map((r) => r.settings.name));
     });
   }
 

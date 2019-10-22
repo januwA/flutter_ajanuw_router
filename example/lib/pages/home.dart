@@ -13,6 +13,7 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text('Home'),
       ),
+      drawer: Drawer(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -61,6 +62,23 @@ class _HomeState extends State<Home> {
               onPressed: () {
                 router.navigator.pushNamed('/');
               },
+            ),
+            Builder(
+              builder: (context) => RaisedButton(
+                child: Text('Display a snackbar'),
+                onPressed: () {
+                  final snackBar = SnackBar(
+                    content: Text('Yay! A SnackBar!'),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      onPressed: () {
+                        // Some code to undo the change.
+                      },
+                    ),
+                  );
+                  Scaffold.of(context).showSnackBar(snackBar);
+                },
+              ),
             ),
             RaisedButton(
               child: Text('Other'),

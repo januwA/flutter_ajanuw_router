@@ -1,6 +1,5 @@
 import 'package:example/data/users.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:example/main.dart';
 
 class Users extends StatefulWidget {
@@ -23,12 +22,6 @@ class _UsersState extends State<Users> {
             builder: (context) => IconButton(
               icon: Icon(Icons.search),
               onPressed: () {
-                SystemChrome.setApplicationSwitcherDescription(
-                  ApplicationSwitcherDescription(
-                    label: '搜索',
-                    primaryColor: Theme.of(context).primaryColor.value,
-                  ),
-                );
                 showSearch(
                   context: context,
                   delegate: ListSearchPage(),
