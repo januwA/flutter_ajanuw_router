@@ -1,11 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_ajanuw_router/ajanuw_routing.dart';
+import 'ajanuw_routing.dart';
 import 'flutter_ajanuw_router.dart';
 
 typedef AjanuwRouteBuilder = Widget Function(
     BuildContext conetxt, AjanuwRouting routing);
+
+typedef TransitionDurationBuilder = Duration Function(AjanuwRouting routing);
 
 enum AjanuwRouteType {
   /// { path="xxx", redirectTo='/home' }
@@ -30,6 +30,13 @@ class AjanuwRoute {
   /// with the back swipe gesture.
   final bool fullscreenDialog;
 
+  /// Whether the route obscures previous routes when the transition is complete.
+  ///
+  /// When an opaque route's entrance transition is complete, the routes behind
+  /// the opaque route will not be built to save resources.
+  /// Only effective if [transitionsBuilder] is set
+  final bool opaque;
+
   ///   Whether the route should remain in memory when it is inactive.
   ///
   /// If this is true, then the route is maintained, so that any futures it is holding from the next route will properly resolve when the next route pops. If this is not necessary, this can be set to false to allow the framework to entirely discard the route's widget hierarchy when it is not visible.
@@ -41,12 +48,93 @@ class AjanuwRoute {
 
   /// Flutetr web document.title
   ///
-  /// 可能会出现异常行为，尝试将[maintainState]设置为'false'
+  /// Unusual behavior may occur, try setting [maintainState] to 'false'
   ///
-  /// 请仔细看[maintainState]属性的说明
+  /// Please see instructions carefully [maintainState] property
   final String title;
 
+  /// Acts on flutter_web
   final Color color;
+
+  /// Whether you can dismiss this route by tapping the modal barrier.
+  ///
+  /// The modal barrier is the scrim that is rendered behind each route, which
+  /// generally prevents the user from interacting with the route below the
+  /// current route, and normally partially obscures such routes.
+  ///
+  /// For example, when a dialog is on the screen, the page below the dialog is
+  /// usually darkened by the modal barrier.
+  ///
+  /// If [barrierDismissible] is true, then tapping this barrier will cause the
+  /// current route to be popped (see [Navigator.pop]) with null as the value.
+  ///
+  /// If [barrierDismissible] is false, then tapping the barrier has no effect.
+  ///
+  /// If this getter would ever start returning a different color,
+  /// [changedInternalState] should be invoked so that the change can take
+  /// effect.
+  ///
+  /// See also:
+  ///
+  ///  * [barrierColor], which controls the color of the scrim for this route.
+  ///  * [ModalBarrier], the widget that implements this feature.
+  /// 
+  /// 简单点讲就是点击遮罩层是否关闭这个路由
+  /// Only effective if [transitionsBuilder] is set
+  final bool barrierDismissible;
+
+  /// The color to use for the modal barrier. If this is null, the barrier will
+  /// be transparent.
+  ///
+  /// The modal barrier is the scrim that is rendered behind each route, which
+  /// generally prevents the user from interacting with the route below the
+  /// current route, and normally partially obscures such routes.
+  ///
+  /// For example, when a dialog is on the screen, the page below the dialog is
+  /// usually darkened by the modal barrier.
+  ///
+  /// The color is ignored, and the barrier made invisible, when [offstage] is
+  /// true.
+  ///
+  /// While the route is animating into position, the color is animated from
+  /// transparent to the specified color.
+  ///
+  /// If this getter would ever start returning a different color,
+  /// [changedInternalState] should be invoked so that the change can take
+  /// effect.
+  ///
+  /// See also:
+  ///
+  ///  * [barrierDismissible], which controls the behavior of the barrier when
+  ///    tapped.
+  ///  * [ModalBarrier], the widget that implements this feature.
+  /// 
+  /// 设置遮罩层的颜色,默认为透明
+  /// Only effective if [transitionsBuilder] is set
+  final Color barrierColor;
+
+  /// The semantic label used for a dismissible barrier.
+  ///
+  /// If the barrier is dismissible, this label will be read out if
+  /// accessibility tools (like VoiceOver on iOS) focus on the barrier.
+  ///
+  /// The modal barrier is the scrim that is rendered behind each route, which
+  /// generally prevents the user from interacting with the route below the
+  /// current route, and normally partially obscures such routes.
+  ///
+  /// For example, when a dialog is on the screen, the page below the dialog is
+  /// usually darkened by the modal barrier.
+  ///
+  /// If this getter would ever start returning a different color,
+  /// [changedInternalState] should be invoked so that the change can take
+  /// effect.
+  ///
+  /// See also:
+  ///
+  ///  * [barrierDismissible], which controls the behavior of the barrier when
+  ///    tapped.
+  ///  * [ModalBarrier], the widget that implements this feature.
+  final String barrierLabel;
 
   /// 与之匹配的路径，即使用路由器匹配表示法的URL字符串。
   ///
@@ -58,11 +146,11 @@ class AjanuwRoute {
   /// ```
   final String path;
 
-  /// 路径匹配时实例化的组件。
-  /// 如果包含[children]或[redirectTo]则可以为空。
+  /// The component that is instantiated when the paths match.
+  /// It can be empty if it contains [children] or [redirectTo].
   final AjanuwRouteBuilder builder;
 
-  /// 为导航设置动画
+  /// Animate navigation
   ///
   /// ```dart
   /// // example
@@ -92,6 +180,34 @@ class AjanuwRoute {
 
   /// The duration the transition lasts.
   final Duration transitionDuration;
+
+  /// Can rely on parsing parameter to return a dynamic [Duration]
+  /// Has priority over [transitionDuration]
+  /// ```dart
+  /// // example
+  /// AjanuwRoute(
+  ///   path: 'dog/:id',
+  ///   builder: (context, r) => Dog(id: r.paramMap['id']),
+  ///   transitionDurationBuilder: (AjanuwRouting r) {
+  ///     final Map arguments = r.arguments;
+  ///     final seconds = arguments != null && arguments['seconds'] != null? arguments['seconds'] : 2;
+  ///     return Duration(seconds: seconds ?? 2);
+  ///   },
+  ///   transitionsBuilder: (context, animation, secondaryAnimation, child) {
+  ///    final tween = Tween(begin: const Offset(1.0, 1.0), end: Offset.zero);
+  ///     final curvedAnimation = CurvedAnimation(
+  ///      parent: animation,
+  ///       curve: const ElasticInOutCurve(),
+  ///     );
+  ///     return SlideTransition(
+  ///       position: tween.animate(curvedAnimation),
+  ///       child: child,
+  ///     );
+  ///   },
+  /// ),
+  /// ```
+  final TransitionDurationBuilder transitionDurationBuilder;
+
   ///是否为自定义动画路由
   bool get isAnimatedRoute => transitionsBuilder != null;
 
@@ -102,8 +218,8 @@ class AjanuwRoute {
   /// redirectTo 优先级高于 builder
   final String redirectTo;
 
-  /// 处理程序，以确定是否允许当前用户使用路由
-  /// 默认情况下，任何用户都可以激活。
+  /// Handler to determine if routing is allowed for the current user
+  /// Any user can activate by default.
   final List<CanActivate> canActivate;
 
   /// 一组指定嵌套路由的子Route对象的数组配置
@@ -128,6 +244,10 @@ class AjanuwRoute {
     return AjanuwRouteType.normal;
   }
 
+  bool get isRedirect => type == AjanuwRouteType.redirect;
+  bool get hasChildren => children != null;
+  bool get hasBuilder => builder != null;
+
   /// 检查是否为动态路由
   static bool isDynamicRouting(String path) {
     List<String> routeNameSplit = path.split('/');
@@ -141,15 +261,20 @@ class AjanuwRoute {
   AjanuwRoute({
     @required this.path,
     this.transitionDuration = kTabScrollDuration,
-    this.transitionsBuilder,
+    this.opaque = true,
+    this.barrierDismissible = false,
     this.fullscreenDialog = false,
     this.maintainState = true,
+    this.barrierLabel,
+    this.barrierColor,
+    this.transitionsBuilder,
     this.title,
     this.color,
     this.builder,
     this.redirectTo,
     this.canActivate,
     this.children,
+    this.transitionDurationBuilder,
   })  :
         // path 为必须参数
         assert(path != null),
@@ -201,15 +326,23 @@ class AjanuwRoute {
 
   @override
   String toString() {
-    return jsonEncode({
-      'notFoundRouteName': notFoundRouteName,
-      'fullscreenDialog': fullscreenDialog,
-      'maintainState': maintainState,
-      'title': title,
-      'color': color,
-      'path': path,
-      'redirectTo': redirectTo,
-      'isAnimatedRoute': isAnimatedRoute,
-    });
+    return """
+    {
+      "notFoundRouteName": $notFoundRouteName,
+      "fullscreenDialog": $fullscreenDialog,
+      "opaque": $opaque,
+      "maintainState": $maintainState,
+      "title": $title,
+      "color": $color,
+      "barrierDismissible": $barrierDismissible,
+      "barrierColor": $barrierColor,
+      "barrierLabel": $barrierLabel,
+      "path": $path,
+      "transitionDuration": $transitionDuration,
+      "isAnimatedRoute": $isAnimatedRoute,
+      "redirectTo": $redirectTo,
+      "type": $type
+    }
+    """;
   }
 }

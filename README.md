@@ -1,8 +1,6 @@
 ## A router used on Flutter and Flutter WEB.
 
-This library can solve most problems, but it can't solve all problems.
-
-> There may be many bugs, please use them carefully on important projects.
+This library can solve most problems (dynamic routing, route interceptor, transparent routing), but not all problems.
 
 ## run demo
 
@@ -27,12 +25,13 @@ dependencies:
 
 ```dart
 // main.dart
-import 'package:example/pages/dog.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_ajanuw_router/ajanuw_route.dart';
 import 'package:flutter_ajanuw_router/ajanuw_routing.dart';
 import 'package:flutter_ajanuw_router/flutter_ajanuw_router.dart';
 
+import 'pages/dog.dart';
 import 'pages/add_user.dart';
 import 'pages/admin.dart';
 import 'pages/home.dart';
@@ -61,13 +60,32 @@ final List<AjanuwRoute> routes = [
   ),
   AjanuwRoute(
     path: 'dog/:id',
+    opaque: false, // Only effective if [transitionsBuilder] is set
+    barrierDismissible: true, // Only effective if [transitionsBuilder] is set
+    barrierColor: Colors.black54, // Only effective if [transitionsBuilder] is set
     builder: (context, r) => Dog(id: r.paramMap['id']),
+    transitionDurationBuilder: (AjanuwRouting r) {
+      final Map arguments = r.arguments;
+      final seconds = arguments != null && arguments['seconds'] != null? arguments['seconds'] : 2;
+      return Duration(seconds: seconds ?? 2);
+    },
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final tween = Tween(begin: const Offset(0.0, 1.0), end: Offset.zero);
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: const ElasticInOutCurve(),
+      );
+      return SlideTransition(
+        position: tween.animate(curvedAnimation),
+        child: child,
+      );
+    },
   ),
   AjanuwRoute(
     path: 'login',
-    title: '登陆',
+    title: 'Login',
     builder: (context, r) => Title(
-      title: '登陆',
+      title: 'Login',
       color: Theme.of(context).primaryColor,
       child: Login(),
     ),
@@ -90,7 +108,7 @@ final List<AjanuwRoute> routes = [
   ),
   AjanuwRoute(
     path: 'admin',
-    title: '控制台',
+    title: 'Admin',
     builder: (context, r) => Admin(),
     canActivate: [
       (AjanuwRouting routing) {
@@ -103,23 +121,23 @@ final List<AjanuwRoute> routes = [
     ],
     children: [
       AjanuwRoute(
-        title: '添加用户',
+        title: 'Add User',
         path: 'add-user',
         builder: (context, settings) => AddUser(),
       ),
     ],
   ),
   AjanuwRoute(
-    title: '用户组',
+    title: 'Users',
     path: 'users',
     builder: (context, r) => Users(),
     children: [
       AjanuwRoute(
-        title: '用户详情',
+        title: 'User details',
         path: ':id',
         canActivate: [
           (AjanuwRouting routing) {
-            // 没有id拒绝访问
+            // No id denied access
             final paramMap = routing.settings.paramMap;
             if (paramMap['id'] == null) {
               router.navigator.pushReplacementNamed('/users');
@@ -135,13 +153,13 @@ final List<AjanuwRoute> routes = [
           }
         ],
         builder: (BuildContext context, r) {
-          // 其实解析参数，放在[User]页面解析比较好，因为可以预防各种问题
+          // In fact, it is better to parse the parameters on the [User] page, because it can prevent various problems
           int id = int.parse(r.paramMap['id']);
           return User(id: id);
         },
         children: [
           AjanuwRoute(
-            title: '设置',
+            title: 'settings',
             path: 'user-settings',
             builder: (context, settings) => UserSettings(),
           ),
@@ -150,7 +168,7 @@ final List<AjanuwRoute> routes = [
     ],
   ),
   AjanuwRoute(
-    title: '页面未找到',
+    title: 'Page Not Found',
     path: 'not-found',
     builder: (context, r) => NotFound(),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -175,10 +193,10 @@ final List<AjanuwRoute> routes = [
   ),
 ];
 
-var onGenerateRoute = router.forRoot(routes);
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
+  final onGenerateRoute = router.forRoot(routes);
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -187,7 +205,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: router.navigatorKey,
       onGenerateRoute: onGenerateRoute,
 
-      /// 如果设置了这个，拦截将无效
+      /// If this is set, interception will not work
       // onUnknownRoute: (s) {
       //   return MaterialPageRoute(
       //     builder: (_) => Scaffold(
@@ -209,7 +227,7 @@ router.navigator.pushNamed('/admin');
 router.navigator.pushNamed('/dog/1');
 
 
-router.navigator.pushNamed( '/users', arguments: 'x',); // /users
+router.navigator.pushNamed('/users', arguments: 'x',); // /users
 router.navigator.pushNamed(1, arguments: user); // /users/1
 router.navigator.pushNamed('user-settings'); // /users/1/user-settings
 router.navigator.pushNamed('../../3'); // /users/3
@@ -217,4 +235,30 @@ router.navigator.pushNamed('../../3'); // /users/3
 router.navigator.pushNamedAndRemoveUntil('/', (_) => false); // [ /home ]
 router.navigator.pushNamedAndRemoveUntil('/users', ModalRoute.withName('/'));// error: There is no / in the history, because / is the redirect route
 router.navigator.pushNamedAndRemoveUntil('/users', ModalRoute.withName('/home'));// success: [/home, /users]
+
+// or use [Navigator]
+
+Navigator.of(context).pushNamed('/');
+Navigator.of(context).pushNamed('/admin');
+Navigator.of(context).pushNamed('/dog/1');
+Navigator.of(context).pushNamed('/users', arguments: 'x',);
+Navigator.of(context).pushNamed(1, arguments: user);
+Navigator.of(context).pushNamed('user-settings');
+Navigator.of(context).pushNamed('../../3');
+Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+Navigator.of(context).pushNamedAndRemoveUntil('/users', ModalRoute.withName('/home'));
+```
+
+## About return value
+```dart
+// Error, you may get the error: type 'PageRouteBuilder <dynamic>' is not a subtype of type 'Route <String>'
+Navigator.of(context).pushNamed<String>('/dog/1').then((s) {
+  print(s);
+});
+
+// Only in this way
+// You have a good way, please tell me.
+Navigator.of(context).pushNamed('/dog/1').then((s) {
+  print(s as String);
+});
 ```

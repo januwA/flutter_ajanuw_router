@@ -14,9 +14,36 @@ class AjanuwRouting {
   final AjanuwRouteSettings settings;
   String get url => p.normalize(p.join(AjanuwRouter.baseHref, settings.name));
 
-  AjanuwRouteFactory get builder => (AjanuwRouteSettings settings) => pageRoute;
+  Route<T> builder<T extends Object>() {
+    if (route.type == AjanuwRouteType.redirect) return null;
+    var _settings = settings.copyWith(name: url);
+    if (route.isAnimatedRoute) {
+      return PageRouteBuilder<T>(
+        settings: _settings,
+        transitionDuration: route.transitionDurationBuilder != null
+            ? route.transitionDurationBuilder(this)
+            : route.transitionDuration,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            _createBuilder(context, route),
+        transitionsBuilder: route.transitionsBuilder,
+        opaque: route.opaque,
+        barrierDismissible: route.barrierDismissible,
+        barrierColor: route.barrierColor,
+        barrierLabel: route.barrierLabel,
+        maintainState: route.maintainState,
+        fullscreenDialog: route.fullscreenDialog,
+      );
+    } else {
+      return MaterialPageRoute<T>(
+        fullscreenDialog: route.fullscreenDialog,
+        maintainState: route.maintainState,
+        builder: (context) => _createBuilder(context, route),
+        settings: _settings,
+      );
+    }
+  }
 
-  /// 动态路由参数
+  /// Dynamic routing parameters
   /// ```dart
   /// path = 'user/:id'
   ///
@@ -76,6 +103,9 @@ class AjanuwRouting {
     return AjanuwRouteType.normal;
   }
 
+  bool get isDynamic => type == AjanuwRouteType.dynamic;
+  bool get isRedirect => type == AjanuwRouteType.redirect;
+
   AjanuwRouting({
     @required this.path,
     @required this.route,
@@ -110,27 +140,6 @@ class AjanuwRouting {
     return route.title != null || route.color != null
         ? _createTitle(context, route)
         : route.builder(context, this);
-  }
-
-  PageRoute get pageRoute {
-    if (route.type == AjanuwRouteType.redirect) return null;
-    var _settings = settings.copyWith(name: url);
-    if (route.isAnimatedRoute) {
-      return PageRouteBuilder(
-        settings: _settings,
-        transitionDuration: route.transitionDuration,
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _createBuilder(context, route),
-        transitionsBuilder: route.transitionsBuilder,
-      );
-    } else {
-      return MaterialPageRoute(
-        fullscreenDialog: route.fullscreenDialog,
-        maintainState: route?.maintainState,
-        builder: (context) => _createBuilder(context, route),
-        settings: _settings,
-      );
-    }
   }
 
   @override

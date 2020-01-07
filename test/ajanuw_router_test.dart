@@ -70,7 +70,7 @@ void main() {
   });
 
   test('routers is not empty', () {
-    for (var item in AjanuwRouter.routers.entries) {
+    for (var item in AjanuwRoutings.routers.entries) {
       print('-' * 10);
       print('key: ${item.key}');
       print('parent: ${item.value.parent}');
@@ -85,17 +85,17 @@ void main() {
       print('exp: ${item.value.exp}');
       print('-' * 10);
     }
-    expect(AjanuwRouter.routers.keys.length != 0, true);
+    expect(AjanuwRoutings.routers.keys.length != 0, true);
   }, skip: true);
 
   test('test exp match of dynamic route', () {
-    expect(AjanuwRouter.routers['users/:id'].exp.hasMatch('users/3'), true);
-    expect(AjanuwRouter.routers['users/:id'].exp.hasMatch('dogs/3'), false);
+    expect(AjanuwRoutings.routers['users/:id'].exp.hasMatch('users/3'), true);
+    expect(AjanuwRoutings.routers['users/:id'].exp.hasMatch('dogs/3'), false);
     expect(
-        AjanuwRouter.routers['users/:id/about'].exp.hasMatch('users/3/about'),
+        AjanuwRoutings.routers['users/:id/about'].exp.hasMatch('users/3/about'),
         true);
     expect(
-        AjanuwRouter.routers['users/:id/settings'].exp
+        AjanuwRoutings.routers['users/:id/settings'].exp
             .hasMatch('users/3/about'),
         false);
   });
