@@ -13,7 +13,6 @@ main() {
       },
       settings: settings,
     );
-    print(ars);
   });
 
   test('test arguments', () {

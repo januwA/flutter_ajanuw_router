@@ -42,7 +42,15 @@ import 'pages/users.dart';
 import 'pages/user.dart';
 import 'service/auth.service.dart';
 
-AjanuwRouter router = AjanuwRouter();
+// [printHistory] Purpose of commissioning
+AjanuwRouter router = AjanuwRouter(printHistory: true);
+
+// as:
+// I/flutter (20260): (/users)
+// I/flutter (20260): (/users, /home)
+// I/flutter (20260): (/users, /home, /login)
+// I/flutter (20260): (/users, /home, /admin)
+// I/flutter (20260): (/users, /home)
 
 final List<AjanuwRoute> routes = [
   AjanuwRoute(
@@ -267,8 +275,14 @@ Navigator.of(context).pushNamed('/dog/1').then((s) {
   print(s as String);
 });
 
-// v0.3.1此版本重写了一些方法，用来修复了上述问题
+// v0.3.1 This version rewrites some methods to fix the above problems
 router.pushNamed<String>('/dog/1').then((s) {
   print(s);
 });
+```
+
+## test
+```
+λ flutter test
+λ flutter test ./test/ajanuw_route_test.dart
 ```

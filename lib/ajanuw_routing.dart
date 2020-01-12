@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'ajanuw_route.dart';
@@ -7,14 +6,32 @@ import 'util/path.dart';
 import 'util/remove_first_string.dart';
 
 class AjanuwRouting {
-  final String path;
   final AjanuwRoute route;
 
+  /// users/:id
+  String get path => urlPath.join(parent ?? "", route.path);
+  List<String> get pathSplit => path.split('/');
+
   final AjanuwRouteSettings settings;
-  String get url => p.normalize(p.join("/", settings.name));
+
+  /// users/1
+  String get url => urlPath.normalize(urlPath.join("/", settings.name));
+
+  /// Dynamic routing parameters
+  /// ```dart
+  /// path = 'user/:id'
+  ///
+  /// navigator.pushNamed('/user/1');
+  ///
+  /// routing.paramMap['id']; // 1 is String
+  /// ```
+  Map<String, String> get paramMap => settings.paramMap;
+
+  /// flutter_web: 这个参数在页面刷新就会为空
+  Object get arguments => settings.arguments;
 
   Route<T> builder<T extends dynamic>() {
-    if (route.type == AjanuwRouteType.redirect) return null;
+    assert(!route.isRedirect);
     var _settings = settings.copyWith(name: url);
     if (route.isAnimatedRoute) {
       return PageRouteBuilder<T>(
@@ -42,24 +59,9 @@ class AjanuwRouting {
     }
   }
 
-  /// Dynamic routing parameters
-  /// ```dart
-  /// path = 'user/:id'
-  ///
-  /// navigator.pushNamed('/user/2');
-  ///
-  /// routing.paramMap['id']; // 2 is String
-  /// ```
-  Map<String, String> get paramMap => settings.paramMap;
-
-  /// 这个参数在页面刷新就会为空
-  Object get arguments => settings.arguments;
-
   /// 只有包含在[children]里面的路由，才设置parent
   final String parent;
-
-  /// 使用'/'分隔[route.path]
-  List<String> get pathSplit => path.split('/');
+  bool get hasParent => parent != null || parent != '';
 
   /// 在被判断为动态路由时，将会填充这个对象
   /// 解析出动态参数，和动态参数的位置
@@ -80,7 +82,7 @@ class AjanuwRouting {
   /// 在被判断为动态路由时，将会填充这个对象
   /// 在访问动态路由时，将用[exp]解析url是否与路由匹配
   RegExp get exp {
-    if (type != AjanuwRouteType.dynamic) return null;
+    if (!isDynamic) return null;
     String exp = '';
     for (var i = 0; i < pathSplit.length; i++) {
       String item = pathSplit[i];
@@ -106,10 +108,9 @@ class AjanuwRouting {
   bool get isRedirect => type == AjanuwRouteType.redirect;
 
   AjanuwRouting({
-    @required this.path,
     @required this.route,
+    @required this.parent,
     this.settings,
-    this.parent = '',
   });
 
   AjanuwRouting copyWith({
@@ -119,7 +120,6 @@ class AjanuwRouting {
     String parent,
   }) {
     return AjanuwRouting(
-      path: path ?? this.path,
       route: route ?? this.route,
       settings: settings ?? this.settings,
       parent: parent ?? this.parent,

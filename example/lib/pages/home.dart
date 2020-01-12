@@ -11,24 +11,18 @@ class Home extends StatelessWidget {
         children: <Widget>[
           RaisedButton(
             child: Text('users'),
-            onPressed: () {
-              router.navigator.pushNamed(
+            onPressed: () => router.pushNamed(
                 '/users',
                 arguments: 'x',
-              );
-            },
+              ),
           ),
           RaisedButton(
             child: Text('admin'),
-            onPressed: () {
-              router.pushNamed('/admin');
-            },
+            onPressed: () => router.pushNamed('/admin'),
           ),
           RaisedButton(
             child: Text('add user'),
-            onPressed: () {
-              router.pushNamed('/admin/add-user');
-            },
+            onPressed: () => router.pushNamed<String>('/admin/add-user').then(print),
           ),
           RaisedButton(
             child: Text('dog 1'),
@@ -40,49 +34,22 @@ class Home extends StatelessWidget {
           ),
           RaisedButton(
             child: Text('login'),
-            onPressed: () {
-              router.navigator.pushNamed('/login');
-            },
+            onPressed: () => router.pushNamed('/login'),
           ),
           RaisedButton(
             child: Text('redirect to dynamic path'),
-            onPressed: () {
-              router.navigator.pushNamed('/aa');
-            },
+            onPressed: () => router.pushNamed('/aa'),
           ),
           RaisedButton(
             child: Text('to home'),
             onPressed: () {
-              router.navigator.pushNamed('/');
+              router.pushNamed('/');
             },
-          ),
-          Builder(
-            builder: (context) => RaisedButton(
-              child: Text('Display a snackbar'),
-              onPressed: () {
-                final snackBar = SnackBar(
-                  content: Text('Yay! A SnackBar!'),
-                  action: SnackBarAction(
-                    label: 'Undo',
-                    onPressed: () {
-                      // Some code to undo the change.
-                    },
-                  ),
-                );
-                Scaffold.of(context).showSnackBar(snackBar);
-              },
-            ),
           ),
           RaisedButton(
             child: Text('Other'),
             onPressed: () {
-              router.navigator.pushNamed('/other');
-            },
-          ),
-          RaisedButton(
-            child: Text('Test'),
-            onPressed: () {
-              router.pop("asd");
+              router.pushNamed('/other');
             },
           ),
         ],

@@ -34,7 +34,7 @@ class _AddUserState extends State<AddUser> {
             RaisedButton(
               child: Text('Submit'),
               onPressed: () {
-                router.navigator.pop(controller.text);
+                router.pop(controller.text);
               },
             )
           ],

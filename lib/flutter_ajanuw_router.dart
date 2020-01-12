@@ -1,119 +1,30 @@
 library flutter_ajanuw_router;
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import 'ajanuw_navigator_base.dart';
-import 'ajanuw_route_observer.dart';
+import 'ajanuw_routings.dart';
 import 'util/path.dart';
 import 'ajanuw_route.dart';
 import 'ajanuw_route_settings.dart';
 import 'ajanuw_routing.dart';
 import 'util/remove_first_string.dart';
 
-typedef AjanuwRouteFactory = Route<dynamic> Function(
-    AjanuwRouteSettings settings);
-
 typedef CanActivate = bool Function(AjanuwRouting routing);
 
-class AjanuwRoutings {
-  /// All routes will be laid flat inside, you can view if needed
-  /// ```dart
-  /// for (var item in AjanuwRoutings.routers.entries) {
-  ///   print(item.key);
-  /// }
-  /// ```
-  static final Map<String, AjanuwRouting> routers = {};
-  static void add(String name, AjanuwRouting value) => routers[name] = value;
-  static bool has(String name) => routers.containsKey(name);
-  static AjanuwRouting get(String name) => routers[name];
-
-  /// 所有动态路由
-  static List<AjanuwRouting> get dynamicRoutings =>
-      routers.values.where((routing) => routing.isDynamic).toList();
-
-  /// 找不到估计就是动态路由
-  /// 拉出所有动态路由
-  static AjanuwRouting findDynamic(String name) {
-    return dynamicRoutings.firstWhere(
-        (dynamicRouting) => _matchDynamicRoute(name, dynamicRouting),
-        orElse: () => null);
-  }
-
-  /// /users/2 匹配 /users/:id
-  static bool _matchDynamicRoute(
-      String routeName, AjanuwRouting dynamicRouting) {
-    final Pattern pattern = '/';
-    List<String> routeNameSplit = routeName.split(pattern);
-    List<String> dynamicRouteNameSplit = dynamicRouting.path.split(pattern);
-    final bool equalRouteLength =
-        routeNameSplit.length == dynamicRouteNameSplit.length;
-    return equalRouteLength &&
-        dynamicRouting.exp.hasMatch(routeNameSplit.join(pattern));
-  }
-}
-
 class AjanuwRouter extends AjanuwNavigatorBase {
-  AjanuwRouter() {
-    _routeListener$.listen((AjanuwRouteObserverData observer) {
-      switch (observer.type) {
-        case AjanuwRouteObserverType.didPush:
-          history.add(observer.to);
-          break;
-        case AjanuwRouteObserverType.didReplace:
-          final Route<dynamic> oldRoute = history.last;
-          final int index = history.length - 1;
-          assert(index >= 0);
-          assert(history.indexOf(oldRoute) == index);
-          history[index] = observer.to;
-          break;
-        case AjanuwRouteObserverType.didPop:
-          if (history.length > 1) {
-            history.removeLast();
-          }
-          break;
-        case AjanuwRouteObserverType.didRemove:
-          Route<dynamic> to = observer.to;
-          if (to != null) {
-            if (to.settings.name != history.last.settings.name) {
-              // print(history.last.settings.name);
-              history.removeLast();
-            }
-          } else {
-            // pushNamedAndRemoveUntil('/', (_) => false)
-            // 当返回false的时候to就为null
+  final AjanuwRoutings routings = AjanuwRoutings();
 
-            // 先push在remove，跳过最后一个
-            int _index = history.length - 2;
-            if (_index >= 0) {
-              history.removeAt(_index);
-            }
-          }
-          break;
-        default:
-      }
-      // print(history.map((r) => r.settings.name));
-    });
-  }
-
-  final _routeListener = StreamController<AjanuwRouteObserverData>();
-  Stream<AjanuwRouteObserverData> get _routeListener$ =>
-      _routeListener.stream.asBroadcastStream();
-  NavigatorObserver get navigatorObserver =>
-      AjanuwRouteObserver(_routeListener);
-
-  /// 匹配路径
-  static AjanuwRouting _matchPath(String routeName) {
-    // 如果能映射，直接返回
-    if (AjanuwRoutings.has(routeName)) {
-      return AjanuwRoutings.get(routeName);
-    }
-    return AjanuwRoutings.findDynamic(routeName);
-  }
+  AjanuwRouter({
+    bool printHistory = false,
+    bool more = false,
+  }) : super(
+          printHistory: printHistory,
+          more: more,
+        );
 
   /// 访问该路由，是否有权限
-  static bool _hasCanActivate(AjanuwRouting routing) {
+  bool _hasCanActivate(AjanuwRouting routing) {
     if (routing.route.canActivate == null || routing.route.canActivate.isEmpty)
       return true;
     for (CanActivate t in routing.route.canActivate) {
@@ -123,8 +34,10 @@ class AjanuwRouter extends AjanuwNavigatorBase {
   }
 
   /// 解析出动态路由的参数
-  static Map<String, String> _snapshot(
-      String routeName, AjanuwRouting dynamicRouting) {
+  Map<String, String> _snapshot(
+    String routeName,
+    AjanuwRouting dynamicRouting,
+  ) {
     Map<String, String> paramMap = {};
     routeName.replaceAllMapped(dynamicRouting.exp, (Match m) {
       for (int i = 0; i < m.groupCount; i++) {
@@ -142,19 +55,15 @@ class AjanuwRouter extends AjanuwNavigatorBase {
     for (AjanuwRoute route in routes) {
       // 重定向路由
       if (route.isRedirect) {
-        String path = p.join(parentPath, route.path);
-        AjanuwRoutings.add(path, AjanuwRouting(path: path, route: route));
+        routings.add(AjanuwRouting(route: route, parent: parentPath));
         continue;
       }
 
       // 包含了子路由
       if (route.hasChildren) {
         for (AjanuwRoute childRoute in route.children) {
-          String parent = p.join(parentPath, route.path);
-          String path = p.join(parent, childRoute.path);
-
+          String parent = urlPath.join(parentPath, route.path);
           var routing = AjanuwRouting(
-            path: path,
             // 权限继承，当父路由被添加了访问权限时,
             // 子路由也会被绑定
             route: childRoute.canActivate == null
@@ -162,9 +71,10 @@ class AjanuwRouter extends AjanuwNavigatorBase {
                 : childRoute,
             parent: parent,
           );
-          AjanuwRoutings.add(path, routing);
+          routings.add(routing);
           if (childRoute.hasChildren) {
-            _forRoot(childRoute.children, path);
+            _forRoot(
+                childRoute.children, urlPath.join(parent, childRoute.path));
           }
         }
       }
@@ -172,33 +82,37 @@ class AjanuwRouter extends AjanuwNavigatorBase {
       // 普通路由和动态路由
       // 跳过没有注册builder的路由
       if (route.hasBuilder) {
-        String path = p.join(parentPath, route.path);
-        AjanuwRoutings.add(
-            path,
-            AjanuwRouting(
-              path: path,
-              route: route,
-              parent: parentPath,
-            ));
+        routings.add(AjanuwRouting(route: route, parent: parentPath));
       }
     }
   }
 
   /// 初始化应用程序的导航
+  @override
   RouteFactory forRoot(List<AjanuwRoute> configRoutes) {
-    history.clear();
     _forRoot(configRoutes, '');
     return onGenerateRoute;
   }
 
-  /// [navigtor.pop()]并不会触发[onGenerateRoute]
+  /// [navigtor.pop]并不会触发[onGenerateRoute]
+  /// 
   /// 在浏览器上很诡异
-  /// 如访问 'http://localhost:57313/#/www/data/aaa'
+  /// 
+  /// 如访问 http://localhost:57313/#/www/data/aaa
+  /// 
   /// /
+  /// 
   /// /www
+  /// 
   /// /www/data
+  /// 
   /// /www/data/aaa
+  /// 
   /// 依次推入
+  /// 
+  /// history大概就这样 [/ /www /www/data /www/data/aaa]
+  /// 
+  /// 但是浏览器的history只有 [/www/data/aaa]
   @override
   Route<T> onGenerateRoute<T>(RouteSettings settings) {
     AjanuwRouteSettings ajanuwRouteSettings =
@@ -209,15 +123,12 @@ class AjanuwRouter extends AjanuwNavigatorBase {
     // push('/home'); 绝对路径
     // push('home'); 相对路径
     // push('../../home'); 相对路径
-    if (p.isRelative(routeName) &&
+    if (urlPath.isRelative(routeName) &&
         history.isNotEmpty &&
         history?.last != null) {
-      routeName = p.normalize(
-        p.join(
-          removeFirstString(
-            history.last.settings.name,
-            "/",
-          ),
+      routeName = urlPath.normalize(
+        urlPath.join(
+          removeFirstString(history.last.settings.name),
           routeName,
         ),
       );
@@ -225,13 +136,13 @@ class AjanuwRouter extends AjanuwNavigatorBase {
       routeName = removeFirstString(routeName);
     }
 
-    // print('routeName: $routeName');
+    assert(!routeName.startsWith("/"));
 
     ajanuwRouteSettings = ajanuwRouteSettings.copyWith(name: routeName);
 
     // 使用[settings]在[routers]里面匹配到对应的路由
-    AjanuwRouting routing =
-        _matchPath(routeName) ?? _matchPath(AjanuwRoute.notFoundRouteName);
+    AjanuwRouting routing = routings.find(routeName) ??
+        routings.find(AjanuwRoute.notFoundRouteName);
 
     //  没有注册[**]路由
     if (routing == null) {
@@ -250,7 +161,6 @@ class AjanuwRouter extends AjanuwNavigatorBase {
     }
 
     // 拦截器
-    // 返回null会造成错误，但是能停止跳转
     if (!_hasCanActivate(routing)) {
       return null;
     }
@@ -264,6 +174,6 @@ class AjanuwRouter extends AjanuwNavigatorBase {
   }
 
   dispose() {
-    _routeListener.close();
+    super.dispose();
   }
 }

@@ -19,6 +19,7 @@ class AjanuwRouteObserverData {
 
 class AjanuwRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   final StreamController<AjanuwRouteObserverData> _listenner;
+  get _sink => _listenner.sink;
   AjanuwRouteObserver(this._listenner);
 
   /// router init
@@ -29,7 +30,7 @@ class AjanuwRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   @override
   void didPush(Route<dynamic> route, Route<dynamic> previousRoute) {
     super.didPush(route, previousRoute);
-    _listenner.sink.add(AjanuwRouteObserverData(
+    _sink.add(AjanuwRouteObserverData(
       type: AjanuwRouteObserverType.didPush,
       from: previousRoute,
       to: route,
@@ -41,7 +42,7 @@ class AjanuwRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   @override
   void didReplace({Route<dynamic> newRoute, Route<dynamic> oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-    _listenner.sink.add(AjanuwRouteObserverData(
+    _sink.add(AjanuwRouteObserverData(
       type: AjanuwRouteObserverType.didReplace,
       from: oldRoute,
       to: newRoute,
@@ -55,7 +56,7 @@ class AjanuwRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   @override
   void didPop(Route<dynamic> route, Route<dynamic> previousRoute) {
     super.didPop(route, previousRoute);
-    _listenner.sink.add(AjanuwRouteObserverData(
+    _sink.add(AjanuwRouteObserverData(
       type: AjanuwRouteObserverType.didPop,
       from: route,
       to: previousRoute,
@@ -65,7 +66,7 @@ class AjanuwRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   @override
   void didRemove(Route from, Route to) {
     super.didRemove(from, to);
-    _listenner.sink.add(AjanuwRouteObserverData(
+    _sink.add(AjanuwRouteObserverData(
       type: AjanuwRouteObserverType.didRemove,
       from: from,
       to: to,

@@ -1,9 +1,71 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
+import 'ajanuw_route.dart';
+import 'ajanuw_route_observer.dart';
+
 abstract class AjanuwNavigatorBase {
-  static final String baseHref = '/';
   Route<T> onGenerateRoute<T>(RouteSettings settings);
+  RouteFactory forRoot(List<AjanuwRoute> configRoutes);
   List<Route<dynamic>> history = [];
+
+  final _routeListener = StreamController<AjanuwRouteObserverData>();
+  get _routeListener$ => _routeListener.stream.asBroadcastStream();
+
+  NavigatorObserver get navigatorObserver =>
+      AjanuwRouteObserver(_routeListener);
+
+  AjanuwNavigatorBase({
+    bool printHistory = false,
+    bool more = false,
+  }) {
+    _routeListener$.listen((AjanuwRouteObserverData observer) {
+      switch (observer.type) {
+        case AjanuwRouteObserverType.didPush:
+          history.add(observer.to);
+          break;
+        case AjanuwRouteObserverType.didReplace:
+          final Route<dynamic> oldRoute = history.last;
+          final int index = history.length - 1;
+          assert(index >= 0);
+          assert(history.indexOf(oldRoute) == index);
+          history[index] = observer.to;
+          break;
+        case AjanuwRouteObserverType.didPop:
+          if (history.length > 1) {
+            history.removeLast();
+          }
+          break;
+        case AjanuwRouteObserverType.didRemove:
+          Route<dynamic> to = observer.to;
+          if (to != null) {
+            if (to.settings.name != history.last.settings.name) {
+              // print(history.last.settings.name);
+              history.removeLast();
+            }
+          } else {
+            // pushNamedAndRemoveUntil('/', (_) => false)
+            // 当返回false的时候to就为null
+
+            // 先push在remove，跳过最后一个
+            int _index = history.length - 2;
+            if (_index >= 0) {
+              history.removeAt(_index);
+            }
+          }
+          break;
+        default:
+      }
+      if (printHistory) {
+        if (more) {
+          print(history);
+        } else {
+          print(history.map((r) => r.settings.name));
+        }
+      }
+    });
+  }
 
   /// ```dart
   /// // example
@@ -86,6 +148,8 @@ abstract class AjanuwNavigatorBase {
   ///
   /// popAndPushNamed('/new')
   ///
+  /// history is: [/users]
+  ///
   /// history is: [/users /new]
   Future<T> popAndPushNamed<T extends Object, TO extends Object>(
     String routeName, {
@@ -112,11 +176,11 @@ abstract class AjanuwNavigatorBase {
 
   /// Example 1:
   ///
-  /// history is: [/users /home /new]
+  /// history is: [/users /home]
   ///
-  /// pushNamedAndRemoveUntil('/users', (_) => false)
+  /// pushNamedAndRemoveUntil('/new', (_) => false)
   ///
-  /// history is: [/users]
+  /// history is: [/new]
   ///
   ///
   /// Example 2:
@@ -177,4 +241,8 @@ abstract class AjanuwNavigatorBase {
 
   void Function(Route<dynamic> anchorRoute) get removeRouteBelow =>
       navigator.removeRouteBelow;
+
+  dispose() {
+    _routeListener.close();
+  }
 }

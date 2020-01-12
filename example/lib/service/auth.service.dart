@@ -15,8 +15,8 @@ class AuthService {
   void login() {
     islogin = true;
     _isLogin$.sink.add(islogin);
-    // router.navigator.pushReplacementNamed(redirectTo);
-    router.navigator.popAndPushNamed(redirectTo);
+    router.navigator.pushReplacementNamed(redirectTo);
+    // router.navigator.popAndPushNamed(redirectTo);
   }
 
   void logout() {

@@ -16,7 +16,7 @@ class _UsersState extends State<Users> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.home),
-            onPressed: () => router.navigator.pushNamed('/'),
+            onPressed: () => router.pushNamed('/'),
           ),
           Builder(
             builder: (context) => IconButton(
@@ -37,7 +37,7 @@ class _UsersState extends State<Users> {
                   leading: Text('#' + u.id.toString()),
                   title: Text(u.name),
                   onTap: () {
-                    router.navigator.pushNamed(u.id.toString(), arguments: u);
+                    router.pushNamed(u.id.toString(), arguments: u);
                   },
                 ))
             .toList(),

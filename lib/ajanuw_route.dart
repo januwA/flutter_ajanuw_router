@@ -17,10 +17,15 @@ enum AjanuwRouteType {
   /// { path='home' }
   normal,
 }
+final _textIsDynamicRouteExp = RegExp(r"\/?:[a-zA-Z]+");
 
 class AjanuwRoute {
   /// defualt '**'
-  static const notFoundRouteName = '**';
+  static const notFoundRouteName = "**";
+
+  /// 检查是否为动态路由
+  static bool isDynamicRouting(String path) =>
+      _textIsDynamicRouteExp.hasMatch(path);
 
   /// Whether this page route is a full-screen dialog.
   ///
@@ -78,7 +83,7 @@ class AjanuwRoute {
   ///
   ///  * [barrierColor], which controls the color of the scrim for this route.
   ///  * [ModalBarrier], the widget that implements this feature.
-  /// 
+  ///
   /// 简单点讲就是点击遮罩层是否关闭这个路由
   /// Only effective if [transitionsBuilder] is set
   final bool barrierDismissible;
@@ -108,7 +113,7 @@ class AjanuwRoute {
   ///  * [barrierDismissible], which controls the behavior of the barrier when
   ///    tapped.
   ///  * [ModalBarrier], the widget that implements this feature.
-  /// 
+  ///
   /// 设置遮罩层的颜色,默认为透明
   /// Only effective if [transitionsBuilder] is set
   final Color barrierColor;
@@ -248,16 +253,55 @@ class AjanuwRoute {
   bool get hasChildren => children != null;
   bool get hasBuilder => builder != null;
 
-  /// 检查是否为动态路由
-  static bool isDynamicRouting(String path) {
-    List<String> routeNameSplit = path.split('/');
-    for (String item in routeNameSplit) {
-      if (item.startsWith(':')) return true;
-    }
-    return false;
-  }
-
-  /// 配置
+  ///
+  ///
+  ///```dart
+  /// AjanuwRoute(
+  ///   path: 'home',
+  ///   title: 'home',
+  ///   builder: (context, routing) => Home(),
+  /// )
+  ///
+  /// // Redirect
+  /// AjanuwRoute(
+  ///   path: '/index',
+  ///   redirectTo: '/home',
+  /// )
+  ///
+  /// // Dynamic routing
+  /// AjanuwRoute(
+  ///   path: 'cats/:id',
+  ///   builder: (context, routing) => Cat(id: routing.paramMap['id']),
+  /// )
+  ///
+  /// // Route interceptor
+  /// AjanuwRoute(
+  ///   path: 'admin',
+  ///   builder: (context, r) => Admin(),
+  ///   canActivate: [
+  ///     (AjanuwRouting routing) {
+  ///       if (authService.islogin) return true;
+  ///       authService.redirectTo = routing.url;
+  ///       router.pushNamed('/login');
+  ///       return false;
+  ///     }
+  ///   ],
+  ///   children: [
+  ///     // Child routes will inherit parent permissions by default
+  ///     AjanuwRoute(
+  ///       path: 'add-user',
+  ///       builder: (context, settings) => AddUser(),
+  ///     ),
+  ///   ],
+  /// )
+  ///
+  /// // 404 redirect
+  /// AjanuwRoute(
+  ///   path: "**",
+  ///   redirectTo: '/not-found',
+  /// ),
+  ///```
+  ///
   AjanuwRoute({
     @required this.path,
     this.transitionDuration = kTabScrollDuration,
@@ -276,9 +320,6 @@ class AjanuwRoute {
     this.children,
     this.transitionDurationBuilder,
   })  :
-        // path 为必须参数
-        assert(path != null),
-
         // path不能设置以'/'开始
         assert(!path.trim().startsWith('/')),
 
