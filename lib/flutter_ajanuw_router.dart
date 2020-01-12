@@ -1,6 +1,9 @@
 library flutter_ajanuw_router;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:rxdart/subjects.dart';
 
 import 'ajanuw_navigator_base.dart';
 import 'ajanuw_routings.dart';
@@ -14,14 +17,6 @@ typedef CanActivate = bool Function(AjanuwRouting routing);
 
 class AjanuwRouter extends AjanuwNavigatorBase {
   final AjanuwRoutings routings = AjanuwRoutings();
-
-  AjanuwRouter({
-    bool printHistory = false,
-    bool more = false,
-  }) : super(
-          printHistory: printHistory,
-          more: more,
-        );
 
   /// 访问该路由，是否有权限
   bool _hasCanActivate(AjanuwRouting routing) {
@@ -87,39 +82,25 @@ class AjanuwRouter extends AjanuwNavigatorBase {
     }
   }
 
+  Stream<AjanuwRouting> get currentRouting$ => _currentRoutingSubject.stream;
+  Sink<AjanuwRouting> get _currentRoutingSink => _currentRoutingSubject.sink;
+  final _currentRoutingSubject = BehaviorSubject<AjanuwRouting>();
+  AjanuwRouting _currentRouting;
+
   /// 初始化应用程序的导航
   @override
-  RouteFactory forRoot(List<AjanuwRoute> configRoutes) {
+  RouteFactory forRoot(
+    List<AjanuwRoute> configRoutes, {
+    bool printHistory = false,
+    bool more = false,
+  }) {
+    this.printHistory = printHistory;
+    this.more = more;
     _forRoot(configRoutes, '');
     return onGenerateRoute;
   }
 
-  /// [navigtor.pop]并不会触发[onGenerateRoute]
-  /// 
-  /// 在浏览器上很诡异
-  /// 
-  /// 如访问 http://localhost:57313/#/www/data/aaa
-  /// 
-  /// /
-  /// 
-  /// /www
-  /// 
-  /// /www/data
-  /// 
-  /// /www/data/aaa
-  /// 
-  /// 依次推入
-  /// 
-  /// history大概就这样 [/ /www /www/data /www/data/aaa]
-  /// 
-  /// 但是浏览器的history只有 [/www/data/aaa]
-  @override
-  Route<T> onGenerateRoute<T>(RouteSettings settings) {
-    AjanuwRouteSettings ajanuwRouteSettings =
-        AjanuwRouteSettings.extend(settings: settings);
-
-    String routeName = ajanuwRouteSettings.name;
-
+  String _handleRouterName(String routeName) {
     // push('/home'); 绝对路径
     // push('home'); 相对路径
     // push('../../home'); 相对路径
@@ -135,9 +116,34 @@ class AjanuwRouter extends AjanuwNavigatorBase {
     } else {
       routeName = removeFirstString(routeName);
     }
+    return routeName;
+  }
 
+  /// [navigtor.pop]并不会触发[onGenerateRoute]
+  ///
+  /// 在浏览器上很诡异
+  ///
+  /// 如访问 http://localhost:57313/#/www/data/aaa
+  ///
+  /// /
+  ///
+  /// /www
+  ///
+  /// /www/data
+  ///
+  /// /www/data/aaa
+  ///
+  /// 依次推入
+  ///
+  /// history大概就这样 [/ /www /www/data /www/data/aaa]
+  ///
+  /// 但是浏览器的history只有 [/www/data/aaa]
+  @override
+  Route<T> onGenerateRoute<T>(RouteSettings settings, [view = false]) {
+    AjanuwRouteSettings ajanuwRouteSettings =
+        AjanuwRouteSettings.extend(settings: settings);
+    String routeName = _handleRouterName(ajanuwRouteSettings.name);
     assert(!routeName.startsWith("/"));
-
     ajanuwRouteSettings = ajanuwRouteSettings.copyWith(name: routeName);
 
     // 使用[settings]在[routers]里面匹配到对应的路由
@@ -170,10 +176,20 @@ class AjanuwRouter extends AjanuwNavigatorBase {
           ajanuwRouteSettings.copyWith(name: routing.route.redirectTo));
     }
 
+    if (view) {
+      _currentRouting = routing;
+      _currentRoutingSink.add(_currentRouting);
+    } else {
+      _currentRouting = null;
+      _currentRoutingSink.add(_currentRouting);
+    }
     return routing.builder<T>();
   }
 
   dispose() {
     super.dispose();
+    _currentRoutingSubject.close();
   }
 }
+
+AjanuwRouter ajanuwRouter = AjanuwRouter();

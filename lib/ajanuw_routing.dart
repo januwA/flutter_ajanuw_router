@@ -40,7 +40,7 @@ class AjanuwRouting {
             ? route.transitionDurationBuilder(this)
             : route.transitionDuration,
         pageBuilder: (context, animation, secondaryAnimation) =>
-            _createBuilder(context, route),
+            _createBuilder(context),
         transitionsBuilder: route.transitionsBuilder,
         opaque: route.opaque,
         barrierDismissible: route.barrierDismissible,
@@ -53,7 +53,7 @@ class AjanuwRouting {
       return MaterialPageRoute<T>(
         fullscreenDialog: route.fullscreenDialog,
         maintainState: route.maintainState,
-        builder: (context) => _createBuilder(context, route),
+        builder: _createBuilder,
         settings: _settings,
       );
     }
@@ -127,7 +127,7 @@ class AjanuwRouting {
   }
 
   /// 在操作系统中描述此应用的小部件。
-  Widget _createTitle(BuildContext context, AjanuwRoute route) {
+  Widget _createTitle(BuildContext context) {
     return Title(
       title: route?.title,
       color: route?.color ?? Theme.of(context).primaryColor,
@@ -135,9 +135,9 @@ class AjanuwRouting {
     );
   }
 
-  Widget _createBuilder(BuildContext context, AjanuwRoute route) {
+  Widget _createBuilder(BuildContext context) {
     return route.title != null || route.color != null
-        ? _createTitle(context, route)
+        ? _createTitle(context)
         : route.builder(context, this);
   }
 

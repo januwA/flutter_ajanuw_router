@@ -15,7 +15,7 @@ import 'pages/users.dart';
 import 'pages/user.dart';
 import 'service/auth.service.dart';
 
-AjanuwRouter router = AjanuwRouter(printHistory: true);
+AjanuwRouter router = AjanuwRouter();
 
 void main() => runApp(MyApp());
 

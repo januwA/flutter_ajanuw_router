@@ -35,6 +35,8 @@ class AjanuwRoute {
   /// with the back swipe gesture.
   final bool fullscreenDialog;
 
+  final bool initialRoute;
+
   /// Whether the route obscures previous routes when the transition is complete.
   ///
   /// When an opaque route's entrance transition is complete, the routes behind
@@ -319,6 +321,7 @@ class AjanuwRoute {
     this.canActivate,
     this.children,
     this.transitionDurationBuilder,
+    this.initialRoute = false,
   })  :
         // path不能设置以'/'开始
         assert(!path.trim().startsWith('/')),

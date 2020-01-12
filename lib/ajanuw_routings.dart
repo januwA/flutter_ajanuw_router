@@ -7,6 +7,15 @@ class AjanuwRoutings {
   bool has(String name) => routers.containsKey(name);
   AjanuwRouting get(String name) => routers[name];
 
+  AjanuwRouting get initialRoute {
+    var r = routers.entries.firstWhere((item) => item.value.route.initialRoute,
+        orElse: () => null);
+    if (r != null)
+      return r.value;
+    else
+      return null;
+  }
+
   /// 所有动态路由
   List<AjanuwRouting> get dynamicRoutings =>
       routers.values.where((routing) => routing.isDynamic).toList();
@@ -17,7 +26,8 @@ class AjanuwRoutings {
         orElse: () => null);
   }
 
-  AjanuwRouting find(String routeName) => has(routeName) ? get(routeName) : findDynamic(routeName);
+  AjanuwRouting find(String routeName) =>
+      has(routeName) ? get(routeName) : findDynamic(routeName);
 
   /// /users/2 匹配 /users/:id
   bool _matchDynamicRoute(String routeName, AjanuwRouting dynamicRouting) {

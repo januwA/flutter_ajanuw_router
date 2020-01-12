@@ -6,20 +6,19 @@ import 'ajanuw_route.dart';
 import 'ajanuw_route_observer.dart';
 
 abstract class AjanuwNavigatorBase {
-  Route<T> onGenerateRoute<T>(RouteSettings settings);
+  Route<T> onGenerateRoute<T>(RouteSettings settings, [bool view]);
   RouteFactory forRoot(List<AjanuwRoute> configRoutes);
   List<Route<dynamic>> history = [];
-
+  Route<dynamic> get lastHistory => history.last;
+  bool printHistory = false;
+  bool more = false;
   final _routeListener = StreamController<AjanuwRouteObserverData>();
   get _routeListener$ => _routeListener.stream.asBroadcastStream();
 
   NavigatorObserver get navigatorObserver =>
       AjanuwRouteObserver(_routeListener);
 
-  AjanuwNavigatorBase({
-    bool printHistory = false,
-    bool more = false,
-  }) {
+  AjanuwNavigatorBase() {
     _routeListener$.listen((AjanuwRouteObserverData observer) {
       switch (observer.type) {
         case AjanuwRouteObserverType.didPush:
@@ -87,14 +86,14 @@ abstract class AjanuwNavigatorBase {
   /// ```
   NavigatorState get navigator => navigatorKey.currentState;
 
-  Route<T> _findRoute<T>(String routeName, Object arguments) {
+  Route<T> _findRoute<T>(String routeName, Object arguments, [view = false]) {
     assert(routeName != null);
     final RouteSettings settings = RouteSettings(
       name: routeName,
       isInitialRoute: history.isEmpty,
       arguments: arguments,
     );
-    return onGenerateRoute<T>(settings);
+    return onGenerateRoute<T>(settings, view);
   }
 
   /// history is: [/users /home]
@@ -106,13 +105,21 @@ abstract class AjanuwNavigatorBase {
     String routeName, {
     Object arguments,
     bool allowNull = true,
+
+    /// 如果使用了这个参数，则不会被加入history
+    bool view = false,
   }) {
     assert(routeName != null);
-    if (allowNull) {
-      Route<T> route = _findRoute(routeName, arguments);
-      return route != null ? navigator.push<T>(route) : Future.value(null);
+    if (view) {
+      _findRoute(routeName, arguments, view);
+      return Future.value(null);
     } else {
-      return navigator.pushNamed(routeName, arguments: arguments);
+      if (allowNull) {
+        Route<T> route = _findRoute(routeName, arguments);
+        return route != null ? navigator.push<T>(route) : Future.value(null);
+      } else {
+        return navigator.pushNamed(routeName, arguments: arguments);
+      }
     }
   }
 
