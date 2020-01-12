@@ -247,6 +247,11 @@ Navigator.of(context).pushNamed('user-settings');
 Navigator.of(context).pushNamed('../../3');
 Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
 Navigator.of(context).pushNamedAndRemoveUntil('/users', ModalRoute.withName('/home'));
+
+// or v0.3.1
+router.pushNamed<String>('/dog/1').then((s) {
+  print(s);
+});
 ```
 
 ## About return value
@@ -260,5 +265,10 @@ Navigator.of(context).pushNamed<String>('/dog/1').then((s) {
 // You have a good way, please tell me.
 Navigator.of(context).pushNamed('/dog/1').then((s) {
   print(s as String);
+});
+
+// v0.3.1此版本重写了一些方法，用来修复了上述问题
+router.pushNamed<String>('/dog/1').then((s) {
+  print(s);
 });
 ```

@@ -39,7 +39,9 @@ final List<AjanuwRoute> routes = [
     builder: (context, r) => Dog(id: r.paramMap['id']),
     transitionDurationBuilder: (AjanuwRouting r) {
       final Map arguments = r.arguments;
-      final seconds = arguments != null && arguments['seconds'] != null? arguments['seconds'] : 2;
+      final seconds = arguments != null && arguments['seconds'] != null
+          ? arguments['seconds']
+          : 2;
       return Duration(seconds: seconds ?? 2);
     },
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -88,7 +90,7 @@ final List<AjanuwRoute> routes = [
         if (authService.islogin) return true;
         print("routing.url: " + routing.url);
         authService.redirectTo = routing.url;
-        router.navigator.pushNamed('/login');
+        router.pushNamed('/login');
         return false;
       }
     ],
@@ -169,14 +171,13 @@ final List<AjanuwRoute> routes = [
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  final onGenerateRoute = router.forRoot(routes);
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       initialRoute: 'users',
       navigatorObservers: [router.navigatorObserver],
       navigatorKey: router.navigatorKey,
-      onGenerateRoute: onGenerateRoute,
+      onGenerateRoute: router.forRoot(routes),
 
       /// If this is set, interception will not work
       // onUnknownRoute: (s) {

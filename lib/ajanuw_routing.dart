@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'ajanuw_route.dart';
 import 'ajanuw_route_settings.dart';
-import 'flutter_ajanuw_router.dart';
 import 'util/path.dart';
 import 'util/remove_first_string.dart';
 
@@ -12,9 +11,9 @@ class AjanuwRouting {
   final AjanuwRoute route;
 
   final AjanuwRouteSettings settings;
-  String get url => p.normalize(p.join(AjanuwRouter.baseHref, settings.name));
+  String get url => p.normalize(p.join("/", settings.name));
 
-  Route<T> builder<T extends Object>() {
+  Route<T> builder<T extends dynamic>() {
     if (route.type == AjanuwRouteType.redirect) return null;
     var _settings = settings.copyWith(name: url);
     if (route.isAnimatedRoute) {

@@ -1,3 +1,4 @@
+import 'package:example/main.dart';
 import 'package:flutter/material.dart';
 
 class Dog extends StatefulWidget {
@@ -26,7 +27,7 @@ class _DogState extends State<Dog> {
               FlatButton(
                 color: Colors.pinkAccent,
                 child: Text('POP'),
-                onPressed: () => Navigator.of(context).pop('dog page pop!'),
+                onPressed: () => router.pop('dog page pop!'),
               ),
             ],
           ),

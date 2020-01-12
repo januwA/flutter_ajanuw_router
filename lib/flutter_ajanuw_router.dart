@@ -4,6 +4,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'ajanuw_navigator_base.dart';
+import 'ajanuw_route_observer.dart';
 import 'util/path.dart';
 import 'ajanuw_route.dart';
 import 'ajanuw_route_settings.dart';
@@ -14,77 +16,6 @@ typedef AjanuwRouteFactory = Route<dynamic> Function(
     AjanuwRouteSettings settings);
 
 typedef CanActivate = bool Function(AjanuwRouting routing);
-
-class AjanuwRouteObserver extends RouteObserver<PageRoute<dynamic>> {
-  final StreamController<AjanuwRouteObserverData> _listenner;
-  AjanuwRouteObserver(this._listenner);
-
-  /// router init
-  /// pushNamed
-  /// pushNamedAndRemoveUntil
-  /// popAndPushNamed
-  /// 向history推送线路
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic> previousRoute) {
-    super.didPush(route, previousRoute);
-    _listenner.sink.add(AjanuwRouteObserverData(
-      type: AjanuwRouteObserverType.didPush,
-      from: previousRoute,
-      to: route,
-    ));
-  }
-
-  /// pushReplacementNamed
-  /// 将history最后一个route替换为新route
-  @override
-  void didReplace({Route<dynamic> newRoute, Route<dynamic> oldRoute}) {
-    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-    _listenner.sink.add(AjanuwRouteObserverData(
-      type: AjanuwRouteObserverType.didReplace,
-      from: oldRoute,
-      to: newRoute,
-    ));
-  }
-
-  /// pop
-  /// popAndPushNamed
-  /// popUntil
-  /// 移除最后一条线路
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic> previousRoute) {
-    super.didPop(route, previousRoute);
-    _listenner.sink.add(AjanuwRouteObserverData(
-      type: AjanuwRouteObserverType.didPop,
-      from: route,
-      to: previousRoute,
-    ));
-  }
-
-  @override
-  void didRemove(Route from, Route to) {
-    super.didRemove(from, to);
-    _listenner.sink.add(AjanuwRouteObserverData(
-      type: AjanuwRouteObserverType.didRemove,
-      from: from,
-      to: to,
-    ));
-  }
-}
-
-enum AjanuwRouteObserverType {
-  didPush,
-  didReplace,
-  didPop,
-  didRemove,
-}
-
-class AjanuwRouteObserverData {
-  final AjanuwRouteObserverType type;
-  final Route<dynamic> from;
-  final Route<dynamic> to;
-
-  AjanuwRouteObserverData({this.type, this.from, this.to});
-}
 
 class AjanuwRoutings {
   /// All routes will be laid flat inside, you can view if needed
@@ -123,7 +54,7 @@ class AjanuwRoutings {
   }
 }
 
-class AjanuwRouter {
+class AjanuwRouter extends AjanuwNavigatorBase {
   AjanuwRouter() {
     _routeListener$.listen((AjanuwRouteObserverData observer) {
       switch (observer.type) {
@@ -166,33 +97,11 @@ class AjanuwRouter {
     });
   }
 
-  static final _routeListener = StreamController<AjanuwRouteObserverData>();
-  static Stream<AjanuwRouteObserverData> get _routeListener$ =>
+  final _routeListener = StreamController<AjanuwRouteObserverData>();
+  Stream<AjanuwRouteObserverData> get _routeListener$ =>
       _routeListener.stream.asBroadcastStream();
-  final NavigatorObserver navigatorObserver =
+  NavigatorObserver get navigatorObserver =>
       AjanuwRouteObserver(_routeListener);
-  static final String baseHref = '/';
-  static List<Route<dynamic>> history = [];
-
-  /// ```dart
-  /// // example
-  /// class MyApp extends StatelessWidget {
-  ///   @override
-  ///   Widget build(BuildContext context) {
-  ///     return MaterialApp(
-  ///       navigatorKey: router.navigatorKey,
-  ///     );
-  ///   }
-  /// }
-  /// ```
-  GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-  /// 导航控制器
-  ///
-  /// ```dart
-  /// router.navigator.pushNamed('/home');
-  /// ```
-  NavigatorState get navigator => navigatorKey.currentState;
 
   /// 匹配路径
   static AjanuwRouting _matchPath(String routeName) {
@@ -276,7 +185,7 @@ class AjanuwRouter {
   }
 
   /// 初始化应用程序的导航
-  AjanuwRouteFactory forRoot(List<AjanuwRoute> configRoutes) {
+  RouteFactory forRoot(List<AjanuwRoute> configRoutes) {
     history.clear();
     _forRoot(configRoutes, '');
     return onGenerateRoute;
@@ -290,7 +199,8 @@ class AjanuwRouter {
   /// /www/data
   /// /www/data/aaa
   /// 依次推入
-  static AjanuwRouteFactory onGenerateRoute = (RouteSettings settings) {
+  @override
+  Route<T> onGenerateRoute<T>(RouteSettings settings) {
     AjanuwRouteSettings ajanuwRouteSettings =
         AjanuwRouteSettings.extend(settings: settings);
 
@@ -306,7 +216,7 @@ class AjanuwRouter {
         p.join(
           removeFirstString(
             history.last.settings.name,
-            AjanuwRouter.baseHref,
+            "/",
           ),
           routeName,
         ),
@@ -350,8 +260,8 @@ class AjanuwRouter {
           ajanuwRouteSettings.copyWith(name: routing.route.redirectTo));
     }
 
-    return routing.builder<dynamic>();
-  };
+    return routing.builder<T>();
+  }
 
   dispose() {
     _routeListener.close();

@@ -21,20 +21,20 @@ class Home extends StatelessWidget {
           RaisedButton(
             child: Text('admin'),
             onPressed: () {
-              router.navigator.pushNamed('/admin');
+              router.pushNamed('/admin');
             },
           ),
           RaisedButton(
             child: Text('add user'),
             onPressed: () {
-              router.navigator.pushNamed('/admin/add-user');
+              router.pushNamed('/admin/add-user');
             },
           ),
           RaisedButton(
             child: Text('dog 1'),
             onPressed: () {
-              Navigator.of(context).pushNamed('/dog/1').then((s) {
-                print(s as String);
+              router.pushNamed<String>('/dog/1').then((s) {
+                print(s);
               });
             },
           ),
@@ -77,6 +77,12 @@ class Home extends StatelessWidget {
             child: Text('Other'),
             onPressed: () {
               router.navigator.pushNamed('/other');
+            },
+          ),
+          RaisedButton(
+            child: Text('Test'),
+            onPressed: () {
+              router.pop("asd");
             },
           ),
         ],
