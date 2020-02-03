@@ -8,11 +8,9 @@ class AjanuwRouteSettings extends RouteSettings {
   AjanuwRouteSettings({
     this.paramMap,
     String name,
-    bool isInitialRoute,
     Object arguments,
   }) : super(
           name: name,
-          isInitialRoute: isInitialRoute ?? false,
           arguments: arguments,
         );
 
@@ -21,7 +19,6 @@ class AjanuwRouteSettings extends RouteSettings {
     RouteSettings settings,
   }) : super(
           name: settings.name,
-          isInitialRoute: settings.isInitialRoute,
           arguments: settings.arguments,
         );
 
@@ -36,7 +33,6 @@ class AjanuwRouteSettings extends RouteSettings {
     return AjanuwRouteSettings(
       paramMap: paramMap ?? this.paramMap,
       name: name ?? this.name,
-      isInitialRoute: isInitialRoute ?? this.isInitialRoute,
       arguments: arguments ?? this.arguments,
     );
   }
@@ -46,7 +42,6 @@ class AjanuwRouteSettings extends RouteSettings {
     return """{
       "paramMap": $paramMap,
       "name": $name,
-      "isInitialRoute": $isInitialRoute,
       "arguments": $arguments,
   }""";
   }

@@ -41,7 +41,6 @@ abstract class AjanuwNavigatorBase {
           Route<dynamic> to = observer.to;
           if (to != null) {
             if (to.settings.name != history.last.settings.name) {
-              // print(history.last.settings.name);
               history.removeLast();
             }
           } else {
@@ -232,7 +231,9 @@ abstract class AjanuwNavigatorBase {
   Future<bool> Function<T extends Object>([T result]) get maybePop =>
       navigator.maybePop;
 
-  bool Function<T extends Object>([T result]) get pop => navigator.pop;
+  void pop<T extends Object>([T result]) {
+    return navigator.pop(result);
+  }
 
   void Function(bool Function(Route<dynamic>) predicate) get popUntil =>
       navigator.popUntil;

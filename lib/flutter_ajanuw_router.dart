@@ -3,7 +3,6 @@ library flutter_ajanuw_router;
 import 'package:flutter/material.dart';
 
 import 'ajanuw_navigator_base.dart';
-import 'ajanuw_routings.dart';
 import 'util/path.dart';
 import 'ajanuw_route.dart';
 import 'ajanuw_route_settings.dart';
@@ -51,67 +50,53 @@ class AjanuwRouter extends AjanuwNavigatorBase {
     return paramMap;
   }
 
-  void _forRoot(List<AjanuwRoute> routes, String parentPath) {
+  void _forRoot(Iterable<AjanuwRoute> routes, String parentPath) {
     for (AjanuwRoute route in routes) {
-      // 重定向路由
-      if (route.isRedirect) {
-        routings.add(AjanuwRouting(route: route, parent: parentPath));
-        continue;
-      }
+      String _parentPath = urlPath.join(parentPath, route.path);
+      route.toRouting(routings, parentPath);
+      // if (route.isRedirect || route.hasBuilder) {
+      //   routings.add(AjanuwRouting(route: route, parent: parentPath));
+      // }
 
       // 包含了子路由
       if (route.hasChildren) {
-        for (AjanuwRoute childRoute in route.children) {
-          String parent = urlPath.join(parentPath, route.path);
-          var routing = AjanuwRouting(
-            // 权限继承，当父路由被添加了访问权限时,
-            // 子路由也会被绑定
-            route: childRoute.canActivate == null
+        _forRoot(
+          route.children.map((childRoute) {
+            return childRoute.canActivate == null
                 ? childRoute.copyWith(canActivate: route.canActivate)
-                : childRoute,
-            parent: parent,
-          );
-          routings.add(routing);
-          if (childRoute.hasChildren) {
-            _forRoot(
-                childRoute.children, urlPath.join(parent, childRoute.path));
-          }
-        }
-      }
-
-      // 普通路由和动态路由
-      // 跳过没有注册builder的路由
-      if (route.hasBuilder) {
-        routings.add(AjanuwRouting(route: route, parent: parentPath));
+                : childRoute;
+          }),
+          _parentPath,
+        );
       }
     }
   }
 
   /// 初始化应用程序的导航
   @override
-  RouteFactory forRoot(List<AjanuwRoute> configRoutes) {
+  RouteFactory forRoot(Iterable<AjanuwRoute> configRoutes) {
     _forRoot(configRoutes, '');
     return onGenerateRoute;
   }
 
   /// [navigtor.pop]并不会触发[onGenerateRoute]
-  /// 
+  ///
   /// 在浏览器上很诡异
-  /// 
+  ///
   /// 如访问 http://localhost:57313/#/www/data/aaa
-  /// 
+  ///
   /// /
-  /// 
+  ///
   /// /www
-  /// 
+  ///
   /// /www/data
-  /// 
+  ///
   /// /www/data/aaa
-  /// 
+  ///
   /// 依次推入
-  /// 
+  ///
   /// history大概就这样 [/ /www /www/data /www/data/aaa]
-  /// 
+  ///
   /// 但是浏览器的history只有 [/www/data/aaa]
   @override
   Route<T> onGenerateRoute<T>(RouteSettings settings) {
@@ -173,6 +158,7 @@ class AjanuwRouter extends AjanuwNavigatorBase {
     return routing.builder<T>();
   }
 
+  @override
   dispose() {
     super.dispose();
   }

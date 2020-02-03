@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 import 'ajanuw_routing.dart';
 import 'flutter_ajanuw_router.dart';
 
-typedef AjanuwRouteBuilder = Widget Function(
-    BuildContext conetxt, AjanuwRouting routing);
-
-typedef TransitionDurationBuilder = Duration Function(AjanuwRouting routing);
-
 enum AjanuwRouteType {
   /// { path="xxx", redirectTo='/home' }
   redirect,
@@ -17,9 +12,19 @@ enum AjanuwRouteType {
   /// { path='home' }
   normal,
 }
+
+typedef AjanuwRouteBuilder<A> = Widget Function(
+  BuildContext conetxt,
+  AjanuwRouting<A> routing,
+);
+
+typedef TransitionDurationBuilder<A> = Duration Function(
+  AjanuwRouting<A> routing,
+);
+
 final _textIsDynamicRouteExp = RegExp(r"\/?:[a-zA-Z]+");
 
-class AjanuwRoute {
+class AjanuwRoute<A extends Object> {
   /// defualt '**'
   static const notFoundRouteName = "**";
 
@@ -153,7 +158,7 @@ class AjanuwRoute {
 
   /// The component that is instantiated when the paths match.
   /// It can be empty if it contains [children] or [redirectTo].
-  final AjanuwRouteBuilder builder;
+  final AjanuwRouteBuilder<A> builder;
 
   /// Animate navigation
   ///
@@ -211,7 +216,7 @@ class AjanuwRoute {
   ///   },
   /// ),
   /// ```
-  final TransitionDurationBuilder transitionDurationBuilder;
+  final TransitionDurationBuilder<A> transitionDurationBuilder;
 
   ///是否为自定义动画路由
   bool get isAnimatedRoute => transitionsBuilder != null;
@@ -252,6 +257,12 @@ class AjanuwRoute {
   bool get isRedirect => type == AjanuwRouteType.redirect;
   bool get hasChildren => children != null;
   bool get hasBuilder => builder != null;
+
+  toRouting(AjanuwRoutings routings, String parentPath) {
+    if (isRedirect || hasBuilder) {
+      routings.add(AjanuwRouting<A>(route: this, parent: parentPath));
+    }
+  }
 
   ///
   ///

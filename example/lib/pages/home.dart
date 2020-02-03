@@ -1,6 +1,8 @@
 import 'package:example/main.dart';
 import 'package:flutter/material.dart';
 
+import 'args.dart';
+
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -12,9 +14,9 @@ class Home extends StatelessWidget {
           RaisedButton(
             child: Text('users'),
             onPressed: () => router.pushNamed(
-                '/users',
-                arguments: 'x',
-              ),
+              '/users',
+              arguments: 'x',
+            ),
           ),
           RaisedButton(
             child: Text('admin'),
@@ -22,7 +24,8 @@ class Home extends StatelessWidget {
           ),
           RaisedButton(
             child: Text('add user'),
-            onPressed: () => router.pushNamed<String>('/admin/add-user').then(print),
+            onPressed: () =>
+                router.pushNamed<String>('/admin/add-user').then(print),
           ),
           RaisedButton(
             child: Text('dog 1'),
@@ -44,6 +47,15 @@ class Home extends StatelessWidget {
             child: Text('to home'),
             onPressed: () {
               router.pushNamed('/');
+            },
+          ),
+          RaisedButton(
+            child: Text('ArgsPage'),
+            onPressed: () {
+              router.pushNamed(
+                '/arg',
+                arguments: ArgsPageArguments("ajanuw", 1),
+              );
             },
           ),
           RaisedButton(

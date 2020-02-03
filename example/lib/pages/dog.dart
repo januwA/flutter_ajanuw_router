@@ -21,8 +21,7 @@ class _DogState extends State<Dog> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text('Dog work. ${widget.id}',
-                  style: Theme.of(context).textTheme.body1),
+              Text('Dog work. ${widget.id}'),
               SizedBox(width: 12),
               FlatButton(
                 color: Colors.pinkAccent,

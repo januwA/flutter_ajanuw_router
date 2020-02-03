@@ -51,6 +51,16 @@ void main() {
                 AjanuwRoute(
                   path: 'settings',
                   builder: builder,
+                  children: [
+                    AjanuwRoute(
+                      path: 'set-name',
+                      builder: builder,
+                    ),
+                    AjanuwRoute(
+                      path: 'set-age',
+                      builder: builder,
+                    ),
+                  ],
                 ),
                 AjanuwRoute(
                   path: 'about',
@@ -92,7 +102,8 @@ void main() {
     expect(router.routings.routers['users/:id'].exp.hasMatch('users/3'), true);
     expect(router.routings.routers['users/:id'].exp.hasMatch('dogs/3'), false);
     expect(
-        router.routings.routers['users/:id/about'].exp.hasMatch('users/3/about'),
+        router.routings.routers['users/:id/about'].exp
+            .hasMatch('users/3/about'),
         true);
     expect(
         router.routings.routers['users/:id/settings'].exp

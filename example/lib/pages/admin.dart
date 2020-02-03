@@ -7,10 +7,8 @@ class Admin extends StatefulWidget {
 }
 
 class _AdminState extends State<Admin> {
-
   String result;
 
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,11 +20,12 @@ class _AdminState extends State<Admin> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text('Admin work.'),
-            if (result != null) Text(result),
+            result != null ? Text(result) : SizedBox(),
             RaisedButton(
               child: Text('add user'),
               onPressed: () async {
-                String name = (await router.navigator.pushNamed('add-user')) as String;
+                String name =
+                    (await router.navigator.pushNamed('add-user')) as String;
                 setState(() {
                   result = name.toUpperCase();
                 });

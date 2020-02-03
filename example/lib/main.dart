@@ -1,3 +1,4 @@
+import 'package:example/pages/args.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_ajanuw_router/ajanuw_route.dart';
@@ -23,6 +24,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<AjanuwRoute> routes = [
+      AjanuwRoute<ArgsPageArguments>(
+        path: 'arg',
+        builder: (c, r) {
+          print(r.arguments.name);
+          return ArgsPage();
+        },
+      ),
       AjanuwRoute(
         path: '',
         redirectTo: '/home',
@@ -36,18 +44,14 @@ class MyApp extends StatelessWidget {
         title: 'home',
         builder: (context, r) => Home(),
       ),
-      AjanuwRoute(
+      AjanuwRoute<int>(
         path: 'dog/:id',
         opaque: false,
         barrierDismissible: true,
         barrierColor: Colors.black54,
         builder: (context, r) => Dog(id: r.paramMap['id']),
-        transitionDurationBuilder: (AjanuwRouting r) {
-          final Map arguments = r.arguments;
-          final seconds = arguments != null && arguments['seconds'] != null
-              ? arguments['seconds']
-              : 2;
-          return Duration(seconds: seconds ?? 2);
+        transitionDurationBuilder: (r) {
+          return Duration(seconds: r.arguments ?? 2);
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final tween = Tween(begin: const Offset(0.0, 1.0), end: Offset.zero);

@@ -281,6 +281,32 @@ router.pushNamed<String>('/dog/1').then((s) {
 });
 ```
 
+## Set the `arguments` type
+```dart
+// type
+class ArgsPageArguments {
+  final String name;
+  final int id;
+
+  ArgsPageArguments(this.name, this.id);
+}
+
+// init
+AjanuwRoute<ArgsPageArguments>(
+  path: 'arg',
+  builder: (c, r) {
+    print(r.arguments.name);
+    return ArgsPage();
+  },
+)
+
+// push
+router.pushNamed(
+  '/arg',
+  arguments: ArgsPageArguments("ajanuw", 1),
+);
+```
+
 ## test
 ```
 λ flutter test

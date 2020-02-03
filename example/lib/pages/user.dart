@@ -25,16 +25,16 @@ class _UserState extends State<User> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            if (name != null) Text('Hi i\'m "$name"') else Text('null'),
+            name != null ? Text('Hi i\'m "$name"') : Text('null'),
             RaisedButton(
               child: Text('to user settings'),
               onPressed: () => router.pushNamed('user-settings'),
             ),
             RaisedButton(
               child: Text('pushNamedAndRemoveUntil("/", (_) => false)'),
-              onPressed: () => router.pushNamedAndRemoveUntil('/', (_) => false),
+              onPressed: () =>
+                  router.pushNamedAndRemoveUntil('/', (_) => false),
             ),
-            
             RaisedButton(
               child: Text(
                   "pushNamedAndRemoveUntil('/users', ModalRoute.withName('/home'))"),
@@ -43,11 +43,12 @@ class _UserState extends State<User> {
                     '/users', ModalRoute.withName('/home'));
               },
             ),
-            if (widget.id == 3)
-              RaisedButton(
-                child: Text('to user 1'),
-                onPressed: () => router.pushNamed('../1'),
-              ),
+            widget.id == 3
+                ? RaisedButton(
+                    child: Text('to user 1'),
+                    onPressed: () => router.pushNamed('../1'),
+                  )
+                : SizedBox(),
           ],
         ),
       ),

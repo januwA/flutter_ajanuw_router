@@ -5,8 +5,41 @@ import 'ajanuw_route_settings.dart';
 import 'util/path.dart';
 import 'util/remove_first_string.dart';
 
-class AjanuwRouting {
-  final AjanuwRoute route;
+/// 所有路由将被打平储存，并提供一些工具方法
+class AjanuwRoutings {
+  final Map<String, AjanuwRouting> routers = {};
+  void add(AjanuwRouting value) => routers[value.path] = value;
+  bool has(String name) => routers.containsKey(name);
+  AjanuwRouting get(String name) => routers[name];
+
+  /// 所有动态路由
+  List<AjanuwRouting> get dynamicRoutings =>
+      routers.values.where((routing) => routing.isDynamic).toList();
+
+  AjanuwRouting findDynamic(String name) {
+    return dynamicRoutings.firstWhere(
+        (dynamicRouting) => _matchDynamicRoute(name, dynamicRouting),
+        orElse: () => null);
+  }
+
+  AjanuwRouting find(String routeName) =>
+      has(routeName) ? get(routeName) : findDynamic(routeName);
+
+  /// /users/2 匹配 /users/:id
+  bool _matchDynamicRoute(String routeName, AjanuwRouting dynamicRouting) {
+    final Pattern pattern = '/';
+    List<String> routeNameSplit = routeName.split(pattern);
+    List<String> dynamicRouteNameSplit = dynamicRouting.path.split(pattern);
+    final bool equalRouteLength =
+        routeNameSplit.length == dynamicRouteNameSplit.length;
+    return equalRouteLength &&
+        dynamicRouting.exp.hasMatch(routeNameSplit.join(pattern));
+  }
+}
+
+/// A，是arguments参数的类型
+class AjanuwRouting<A> {
+  final AjanuwRoute<A> route;
 
   /// users/:id
   String get path => urlPath.join(parent ?? "", route.path);
@@ -28,8 +61,9 @@ class AjanuwRouting {
   Map<String, String> get paramMap => settings.paramMap;
 
   /// flutter_web: 这个参数在页面刷新就会为空
-  Object get arguments => settings.arguments;
+  A get arguments => settings.arguments;
 
+  /// T，是pop返回的数据类型
   Route<T> builder<T extends dynamic>() {
     assert(!route.isRedirect);
     var _settings = settings.copyWith(name: url);
@@ -119,7 +153,7 @@ class AjanuwRouting {
     AjanuwRouteSettings settings,
     String parent,
   }) {
-    return AjanuwRouting(
+    return AjanuwRouting<A>(
       route: route ?? this.route,
       settings: settings ?? this.settings,
       parent: parent ?? this.parent,
@@ -135,7 +169,7 @@ class AjanuwRouting {
     );
   }
 
-  Widget _createBuilder(BuildContext context, AjanuwRoute route) {
+  Widget _createBuilder(BuildContext context, AjanuwRoute<A> route) {
     return route.title != null || route.color != null
         ? _createTitle(context, route)
         : route.builder(context, this);
