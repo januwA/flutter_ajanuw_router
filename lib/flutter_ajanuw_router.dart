@@ -41,7 +41,7 @@ class AjanuwRouter extends AjanuwNavigatorBase {
     routeName.replaceAllMapped(dynamicRouting.exp, (Match m) {
       for (int i = 0; i < m.groupCount; i++) {
         DynamicRoutingParam item = dynamicRouting.params[i];
-        String key = removeFirstString(item.name, ':');
+        String key = removeFirstString(item.name ?? '', ':');
         String value = m[i + 1];
         paramMap[key] = value;
       }
@@ -113,12 +113,12 @@ class AjanuwRouter extends AjanuwNavigatorBase {
         history?.last != null) {
       routeName = urlPath.normalize(
         urlPath.join(
-          removeFirstString(history.last.settings.name),
+          removeFirstString(history.last.settings.name ?? ""),
           routeName,
         ),
       );
     } else {
-      routeName = removeFirstString(routeName);
+      routeName = removeFirstString(routeName ?? '');
     }
 
     assert(!routeName.startsWith("/"));

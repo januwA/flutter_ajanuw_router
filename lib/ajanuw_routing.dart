@@ -126,7 +126,9 @@ class AjanuwRouting<A> {
       }
       exp += expItem;
     }
-    exp = removeFirstString(exp);
+    if (exp != null && exp.trim() != '') {
+      exp = removeFirstString(exp);
+    }
     RegExp parseExp = RegExp("$exp", dotAll: true);
     return parseExp;
   }

@@ -6,5 +6,5 @@
 /// removeFirstString(':id', ':');  // id
 /// ```
 removeFirstString(String str, [String r = '/']) {
-  return str.replaceFirst(RegExp('^$r'), '');
+  return (str ?? '').replaceFirst(RegExp('^$r'), '');
 }
