@@ -90,7 +90,6 @@ abstract class AjanuwNavigatorBase {
     assert(routeName != null);
     final RouteSettings settings = RouteSettings(
       name: routeName,
-      isInitialRoute: history.isEmpty,
       arguments: arguments,
     );
     return onGenerateRoute<T>(settings);
@@ -231,9 +230,7 @@ abstract class AjanuwNavigatorBase {
   Future<bool> Function<T extends Object>([T result]) get maybePop =>
       navigator.maybePop;
 
-  void pop<T extends Object>([T result]) {
-    return navigator.pop(result);
-  }
+  void pop<T extends Object>([T result]) => navigator.pop<T>(result);
 
   void Function(bool Function(Route<dynamic>) predicate) get popUntil =>
       navigator.popUntil;
