@@ -27,8 +27,10 @@ class MyApp extends StatelessWidget {
       AjanuwRoute<ArgsPageArguments>(
         path: 'arg',
         builder: (c, r) {
-          print(r.arguments.name);
-          return ArgsPage();
+          return ArgsPage(
+            name: r.arguments.name,
+            id: r.arguments.id,
+          );
         },
       ),
       AjanuwRoute(
@@ -44,15 +46,13 @@ class MyApp extends StatelessWidget {
         title: 'home',
         builder: (context, r) => Home(),
       ),
-      AjanuwRoute<int>(
+      AjanuwRoute(
         path: 'dog/:id',
         opaque: false,
         barrierDismissible: true,
         barrierColor: Colors.black54,
         builder: (context, r) => Dog(id: r.paramMap['id']),
-        transitionDurationBuilder: (r) {
-          return Duration(seconds: r.arguments ?? 2);
-        },
+        transitionDurationBuilder: (_) => Duration(seconds: 2),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final tween = Tween(begin: const Offset(0.0, 1.0), end: Offset.zero);
           final curvedAnimation = CurvedAnimation(

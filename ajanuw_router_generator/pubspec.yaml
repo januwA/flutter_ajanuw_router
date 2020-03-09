@@ -1,0 +1,21 @@
+name: ajanuw_router_generator
+description: Quickly generate argument
+version: 0.1.0
+homepage: https://github.com/januwA/flutter_ajanuw_router
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  build: ^1.2.2
+  source_gen: ^0.9.5
+  analyzer: ^0.39.4
+  flutter_ajanuw_router: ^0.3.5
+    # path: ../ajanuw_router
+
+dev_dependencies:
+  test: ^1.6.0
+  build_test:
+  build_runner:

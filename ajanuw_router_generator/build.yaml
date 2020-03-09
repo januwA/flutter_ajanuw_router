@@ -1,0 +1,15 @@
+targets:
+  $default:
+    builders:
+      ajanuw_router_generator|ajanuw_router:
+        enabled: true
+
+builders:
+  test:
+    target: ":ajanuw_router_generator"
+    import: "package:ajanuw_router_generator/builder.dart"
+    builder_factories: ["ajanuwRouter"]
+    build_extensions: { ".dart": [".ajanuw_router.g.part"] }
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]

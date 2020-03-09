@@ -54,7 +54,9 @@ class Home extends StatelessWidget {
             onPressed: () {
               router.pushNamed(
                 '/arg',
-                arguments: ArgsPageArguments("ajanuw", 1),
+                arguments: ArgsPageArguments()
+                  ..name = 'ajanuw'
+                  ..id = 1,
               );
             },
           ),

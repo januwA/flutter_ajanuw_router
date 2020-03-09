@@ -1,6 +1,10 @@
 import 'package:example/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_ajanuw_router/ajanuw_route_argument.dart';
 
+part 'dog.g.dart';
+
+@ara
 class Dog extends StatefulWidget {
   final String id;
 
